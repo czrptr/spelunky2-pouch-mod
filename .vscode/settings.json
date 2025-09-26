@@ -1,0 +1,5 @@
+{
+  "Lua.workspace.library": [
+    "${workspaceFolder}/library/docs/game_data/spel2.lua",
+  ],
+}

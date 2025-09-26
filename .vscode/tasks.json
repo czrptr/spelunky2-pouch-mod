@@ -1,0 +1,35 @@
+{
+  // define "user.spelunky2.path" in user settings.json
+  "tasks": [
+    {
+      "label": "Install",
+      "detail": "Copy files into Spelunky 2 mods folder",
+      "icon": {
+        "id": "copy",
+        "color": "terminal.ansiGreen",
+      },
+      "presentation": {
+        "echo": false,
+        "reveal": "never",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": false,
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true,
+      },
+      "type": "shell",
+      "linux": {
+        "command": "cp",
+        "args": [
+          "-a",
+          "${workspaceFolder}/source/.",
+          "${config:user.spelunky2.path}/Mods/Packs/Pouch",
+        ],
+      },
+    },
+  ],
+  "version": "2.0.0",
+}

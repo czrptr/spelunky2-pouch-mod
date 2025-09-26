@@ -10,6 +10,7 @@ meta.author = 'Quasar'
 local slot_texture = nil
 do
   local texture_def = TextureDefinition.new()
+
   texture_def.texture_path = 'slot.png'
   texture_def.width = 128
   texture_def.height = 128
