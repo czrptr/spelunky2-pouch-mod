@@ -3,9 +3,35 @@
   "tasks": [
     {
       "label": "Install",
-      "detail": "Copy files into Spelunky 2 mods folder",
+      "detail": "Copy files into mods folder",
       "icon": {
         "id": "copy",
+        "color": "terminal.ansiGreen",
+      },
+      "presentation": {
+        "echo": false,
+        "reveal": "never",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": false,
+      },
+      "group": "build",
+      "type": "shell",
+      "linux": {
+        "command": "cp",
+        "args": [
+          "-a",
+          "${workspaceFolder}/source/.",
+          "${config:user.spelunky2.path}/Mods/Packs/Pouch",
+        ],
+      },
+    },
+    {
+      "label": "Launch",
+      "detail": "Start Spelunky 2",
+      "icon": {
+        "id": "game",
         "color": "terminal.ansiGreen",
       },
       "presentation": {
@@ -20,13 +46,17 @@
         "kind": "build",
         "isDefault": true,
       },
+      "dependsOn": [
+        "Install",
+      ],
       "type": "shell",
       "linux": {
-        "command": "cp",
+        "command": "powershell.exe",
         "args": [
-          "-a",
-          "${workspaceFolder}/source/.",
-          "${config:user.spelunky2.path}/Mods/Packs/Pouch",
+          "-ExecutionPolicy",
+          "Bypass",
+          "-File",
+          "${workspaceFolder}/.vscode/automation.ps1",
         ],
       },
     },
