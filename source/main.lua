@@ -22,30 +22,15 @@ end
 local SFX_STORE = get_sound(VANILLA_SOUND.MOUNTS_MOUNT)
 local SFX_INVALID = get_sound(VANILLA_SOUND.SHOP_SHOP_NOPE)
 
-function play_sfx(sfx, pitch, volume)
+local function play_sfx(sfx, pitch, volume)
   local playing_sound = sfx:play(true)
   playing_sound:set_pitch(pitch)
   playing_sound:set_volume(volume)
   playing_sound:set_pause(false)
 end
 
-function unset_flag(flags, bit)
-  return flags & ~bit
-end
-
-function metadata_from(uid)
-  local entity = get_entity(uid)
-  if entity == nil then
-    return nil
-  end
-
-  local metadata = {
-    type = entity.type.id,
-    animation_frame = entity.animation_frame,
-    texture = entity:get_texture()
-  }
-
-  return metadata
+local function was_just_pressed(current_input, previous_input, input_flag)
+  return test_flag(current_input, input_flag) and not test_flag(previous_input, input_flag)
 end
 
 --== Pouch ==--
@@ -61,74 +46,79 @@ function Pouch:init(player_uid)
 end
 
 function Pouch:store(held_uid)
-  metadata = metadata_from(held_uid)
-  if metadata == nil or #self.slots >= options.pouch_size then
+  print(string.format("Pre store: %d", tostring(#self.slots)))
+
+  if #self.slots >= options.pouch_size then
     play_sfx(SFX_INVALID, 1.3, 0.775)
     return
   end
 
-  table.insert(self.slots, 1, metadata)
+  table.insert(self.slots, 1, held_uid)
 
   -- disable held entity
-  drop(self.player_uid, held_uid)
   local held = get_entity(held_uid)
-  held.flags = set_flag(held.flags, ENT_FLAG.INVISIBLE | ENT_FLAG.PAUSE_AI_AND_PHYSICS)
-  move_entity(held_uid, 0, 0, 0, 0)
+  held.flags = set_flag(held.flags, ENT_FLAG.INVISIBLE)
+  held.flags = set_flag(held.flags, ENT_FLAG.PAUSE_AI_AND_PHYSICS)
+  drop(self.player_uid, held_uid)
 
   -- create pickup visual effect
-  local x, y, l = get_position(self.player_uid)
-  local fx_uid = spawn_entity(ENT_TYPE.FX_PICKUPEFFECT, x, y, l, 0, 0)
-  local fx = get_entity(fx_uid)
-  fx:set_texture(held:get_texture())
-  fx.animation_frame = held.animation_frame
-  generate_particles(PARTICLEEMITTER.ITEMDUST, held_uid)
+  -- local x, y, l = get_position(self.player_uid)
+  -- local fx_uid = spawn_entity(ENT_TYPE.FX_PICKUPEFFECT, x, y, l, 0, 0)
+  -- local fx = get_entity(fx_uid)
+  -- fx:set_texture(held:get_texture())
+  -- fx.animation_frame = held.animation_frame
+  -- generate_particles(PARTICLEEMITTER.ITEMDUST, held_uid)
 
   -- play sound effect
   play_sfx(SFX_STORE, 1.1, 1.2)
+  print(string.format("Post store: %d", tostring(#self.slots)))
 end
 
 function Pouch:retrieve()
+  print(string.format("Pre retrieve: %d", tostring(#self.slots)))
+
   if #self.slots == 0 then
     return
   end
 
-  local metadata = table.remove(self.slots, 1)
+  local held_uid = table.remove(self.slots, 1)
 
-  local x, y, l = get_position(self.player_uid)
-  local fx_uid = spawn_entity(ENT_TYPE.FX_PICKUPEFFECT, x, y, l, 0, 0)
-  local fx = get_entity(fx_uid)
-  fx:set_texture(metadata.texture)
-  fx.animation_frame = metadata.animation_frame
+  -- local x, y, l = get_position(self.player_uid)
+  -- local fx_uid = spawn_entity(ENT_TYPE.FX_PICKUPEFFECT, x, y, l, 0, 0)
+  -- local fx = get_entity(fx_uid)
+  -- fx:set_texture(metadata.texture)
+  -- fx.animation_frame = metadata.animation_frame
 
-  -- local held = get_entity(held_uid)
-  -- held.flags = unset_flag(held.flags, ENT_FLAG.INVISIBLE | ENT_FLAG.PAUSE_AI_AND_PHYSICS)
-
-  -- pick_up(self.player_uid, held_uid)
+  local held = get_entity(held_uid)
+  held.flags = clr_flag(held.flags, ENT_FLAG.PAUSE_AI_AND_PHYSICS)
+  held.flags = clr_flag(held.flags, ENT_FLAG.INVISIBLE)
+  pick_up(self.player_uid, held_uid)
 
   -- generate_particles(PARTICLEEMITTER.ITEMDUST, held_uid)
+  print(string.format("Post retrieve: %d", tostring(#self.slots)))
 end
 
 --== Business logic ==--
 
 local pouches = {}
-local inputs = {}
+local previous_inputs = {}
 
-function setup_lookup_tables()
+local function init()
   for idx, player in ipairs(get_local_players()) do
     pouches[idx] = Pouch:init(player.uid)
-    inputs[idx] = string.format('player_slot_%d', idx)
   end
 end
 
-function update()
+local function update()
   for idx, player in ipairs(get_local_players()) do
-    local buttons = state.player_inputs[inputs[idx]].buttons
+    local current_input = player.input.buttons
+    local previous_input = previous_inputs[idx]
 
-    if player:is_button_pressed(BUTTON.DOOR) and test_flag(buttons, INPUT_FLAG.DOWN) then
+    if test_flag(current_input, INPUT_FLAG.DOWN) and was_just_pressed(current_input, previous_input, INPUT_FLAG.DOOR) then
       print(inspect(pouches[idx]))
     end
 
-    if player:is_button_pressed(BUTTON.DOOR) and test_flag(buttons, INPUT_FLAG.UP) then
+    if test_flag(current_input, INPUT_FLAG.UP) and was_just_pressed(current_input, previous_input, INPUT_FLAG.DOOR) then
       if player.holding_uid ~= -1 then
         pouches[idx]:store(player.holding_uid)
       else
@@ -136,17 +126,17 @@ function update()
       end
     end
 
+    previous_inputs[idx] = current_input
   end
 end
 
-function ui(render_ctx)
+local function ui(render_ctx)
   local ASPECT_RATIO = 16 / 9
   local UI_WIDTH = 0.05
   local UI_HEIGHT = UI_WIDTH * ASPECT_RATIO
   local UI_X = -0.95
   local UI_Y = 0.7
   local UI_MARGIN = 0.0075
-  local GROWTH = 0.0055
 
   for idx = 1, options.pouch_size do
     local bounds = AABB:new()
@@ -157,16 +147,19 @@ function ui(render_ctx)
 
     render_ctx:draw_screen_texture(slot_texture, 0, 0, bounds, Color:new(1, 1, 1, 1))
 
-    local metadata = pouches[1].slots[idx]
+    local slot_uid = pouches[1].slots[idx]
 
-    if metadata ~= nil then
-      local texture_definition = get_texture_definition(metadata.texture)
+    if slot_uid ~= nil then
+      local slot = get_entity(slot_uid)
+      local texture = slot:get_texture()
+
+      local texture_definition = get_texture_definition(texture)
       local columns = texture_definition.width / texture_definition.tile_width
       local rows = texture_definition.height / texture_definition.tile_height
-      local sprite_row = math.floor(metadata.animation_frame // rows)
-      local sprite_column = math.floor(metadata.animation_frame % columns)
+      local sprite_row = math.floor(slot.animation_frame // rows)
+      local sprite_column = math.floor(slot.animation_frame % columns)
 
-      render_ctx:draw_screen_texture(metadata.texture, sprite_row, sprite_column, bounds, Color:new(1, 1, 1, 1))
+      render_ctx:draw_screen_texture(texture, sprite_row, sprite_column, bounds, Color:new(1, 1, 1, 1))
     end
   end
 end
@@ -176,7 +169,7 @@ end
 register_option_int('pouch_size', 'Pouch capacity', 3, 1, 5)
 
 set_callback(function ()
-  setup_lookup_tables()
+  init()
   set_callback(update, ON.FRAME)
   set_callback(ui, ON.RENDER_POST_HUD)
 end, ON.START)
