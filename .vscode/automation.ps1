@@ -83,6 +83,49 @@ function Get-Process-Handle
   return $handle
 }
 
+function Wait-For-Process-Close
+{
+  param
+  (
+    [string]$Name,
+    [int]$Timeout = 0, # 0 = no timeout, wait indefinitely (milliseconds)
+    [int]$CheckInterval = 200  # How often to check (milliseconds)
+  )
+
+  # First check if process exists at all
+  $initialProcesses = Get-Process | Where-Object { $_.ProcessName -like "*$Name*" }
+  if ($initialProcesses.Count -eq 0)
+  {
+    return $true
+  }
+
+  $startTime = Get-Date
+
+  while ($true)
+  {
+    # Check if any processes are still running
+    $runningProcesses = Get-Process | Where-Object { $_.ProcessName -like "*$Name*" }
+
+    if ($runningProcesses.Count -eq 0)
+    {
+      return $true
+    }
+
+    # Check timeout
+    if ($Timeout -gt 0)
+    {
+      $elapsedTime = (Get-Date) - $startTime
+      if ($elapsedTime.TotalSeconds -ge $Timeout)
+      {
+        return $false
+      }
+    }
+
+    # Wait before next check
+    Start-Sleep -Milliseconds $CheckInterval
+  }
+}
+
 function Get-Window-Rect
 {
   param
@@ -129,21 +172,54 @@ function Focus-Window
   [Win32]::SetForegroundWindow($Handle) | Out-Null
 }
 
+Add-Type -TypeDefinition @"
+public enum Anchor
+{
+    TopLeft,
+    TopRight,
+    BottomLeft,
+    BottomRight,
+    Center
+}
+"@
+
 function Click-In-Window
 {
   param
   (
     [IntPtr] $Handle,
     [Win32+RECT] $Rect,
-    [int] $X, # relative to left
-    [int] $Y # relative to bottom
+    [int] $X,
+    [int] $Y,
+    [Anchor] $Anchor
   )
   Focus-Window -Handle $Handle
 
-  # Move cursor
-  $absX = $Rect.Left + $X
-  $windowHeight = $Rect.Bottom - $Rect.Top
-  $absY = $Rect.Top + ($windowHeight - $Y)
+  switch ($Anchor)
+  {
+    "TopLeft" {
+      $absX = $Rect.Left + $X
+      $absY = $Rect.Top + $Y
+    }
+    "TopRight" {
+      $absX = $Rect.Right - $X
+      $absY = $Rect.Top + $Y
+    }
+    "BottomLeft" {
+      $absX = $Rect.Left + $X
+      $absY = $Rect.Bottom - $Y
+    }
+    "BottomRight" {
+      $absX = $Rect.Right - $X
+      $absY = $Rect.Bottom - $Y
+    }
+    "Center" {
+      $centerX = $Rect.Left + ($windowWidth / 2)
+      $centerY = $Rect.Top + ($windowHeight / 2)
+      $absX = $centerX + $X
+      $absY = $centerY + $Y
+    }
+  }
 
   [Win32]::SetCursorPos($absX, $absY) | Out-Null
   Start-Sleep -Milliseconds 25
@@ -173,16 +249,20 @@ function Send-Key
 
 # -------- Logic --------
 
+# Find Modlunky2
 $handle = Get-Process-Handle -Name "modlunky2"
 if ($handle -eq $null)
 {
   Exit
 }
 Restere-Window -Handle $handle
+# Click Play
 $rect = Get-Window-Rect -Handle $handle
-Click-In-Window -Handle $handle -Rect $rect -X 110 -Y 180
+Click-In-Window -Handle $handle -Rect $rect -X 110 -Y 180 -Anchor BottomLeft
+# Hide Modlunky2
 Minimize-Window -Handle $handle
 
+# Find Spelunky2
 Start-Sleep -Milliseconds 1000
 $handle = Get-Process-Handle -Name "Spel2"
 if ($handle -eq $null)
@@ -190,25 +270,32 @@ if ($handle -eq $null)
   Exit
 }
 
-Start-Sleep -Milliseconds 3500
+Start-Sleep -Milliseconds 5000
 Focus-Window -Handle $handle
+$rect = Get-Window-Rect -Handle $handle
 
-# skip logos
-Send-Key -HANDLE $handle -Key ([Win32]::VK_RETURN) # Mossmouth
-Send-Key -HANDLE $handle -Key ([Win32]::VK_RETURN) # Blitworks
-Send-Key -HANDLE $handle -Key ([Win32]::VK_RETURN) # Fmod
-Send-Key -HANDLE $handle -Key ([Win32]::VK_RETURN) # Cinematic
+# Skip to gameplay using Overlunky Skip intro script autoloading
 
-# navigate to co-op
-Send-Key -HANDLE $handle -Key ([Win32]::VK_RETURN) -Delay 1000 # Intro
-Send-Key -HANDLE $handle -Key ([Win32]::VK_RETURN) -Delay 500 # Animation
-Send-Key -HANDLE $handle -Key ([Win32]::VK_RETURN) -Delay 500 # Play
-Send-Key -HANDLE $handle -Key ([Win32]::VK_RETURN) -Delay 500 # Adventure
+# > Game
+Click-In-Window -Handle $handle -Rect $rect -X 250 -Y 6 -Anchor TopLeft
+# > Players
+Click-In-Window -Handle $handle -Rect $rect -X 250 -Y 130 -Anchor TopLeft
+# > Number of players = 2
+Click-In-Window -Handle $handle -Rect $rect -X 620 -Y 150 -Anchor TopLeft
+# > Player 2
+Click-In-Window -Handle $handle -Rect $rect -X 620 -Y 290 -Anchor TopLeft
+# > Keyboard 2
+Click-In-Window -Handle $handle -Rect $rect -X 620 -Y 345 -Anchor TopLeft
+# Exit menu
+Click-In-Window -Handle $handle -Rect $rect -X 0 -Y 0 -Anchor Center
 
-# select players
-Send-Key -HANDLE $handle -Key ([Win32]::VK_Z) -Delay 2000 # Player 1 select
-Send-Key -HANDLE $handle -Key ([Win32]::VK_K) # Player 2 select
-Send-Key -HANDLE $handle -Key ([Win32]::VK_Z) -Delay 300 # Player 1 confirm
-Send-Key -HANDLE $handle -Key ([Win32]::VK_K) # Player 2 confirm
-Send-Key -HANDLE $handle -Key ([Win32]::VK_RETURN) -Delay 500 # Start
-Send-Key -HANDLE $handle -Key ([Win32]::VK_RETURN) # Animation
+# Focus VSCode
+$gameClosed = Wait-For-Process-Close -Name -Timeout 0 -CheckInterval 1000
+if ($gameClosed)
+{
+  $handle = Get-Process-Handle -Name "Code"
+  if ($handle -ne $null)
+  {
+    Focus-Window -Handle $handle
+  }
+}
