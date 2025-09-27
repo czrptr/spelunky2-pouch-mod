@@ -46,56 +46,41 @@ function Pouch:init(player_uid)
 end
 
 function Pouch:store(held_uid)
-  print(string.format("Pre store: %d", tostring(#self.slots)))
-
   if #self.slots >= options.pouch_size then
     play_sfx(SFX_INVALID, 1.3, 0.775)
     return
   end
 
-  table.insert(self.slots, 1, held_uid)
+  local held = get_entity(held_uid)
+  table.insert(self.slots, 1, held)
 
   -- disable held entity
-  local held = get_entity(held_uid)
+  drop(self.player_uid, held_uid)
   held.flags = set_flag(held.flags, ENT_FLAG.INVISIBLE)
   held.flags = set_flag(held.flags, ENT_FLAG.PAUSE_AI_AND_PHYSICS)
-  drop(self.player_uid, held_uid)
+  move_entity(held_uid, 0, 0, 0, 0);
 
   -- create pickup visual effect
-  -- local x, y, l = get_position(self.player_uid)
-  -- local fx_uid = spawn_entity(ENT_TYPE.FX_PICKUPEFFECT, x, y, l, 0, 0)
-  -- local fx = get_entity(fx_uid)
-  -- fx:set_texture(held:get_texture())
-  -- fx.animation_frame = held.animation_frame
-  -- generate_particles(PARTICLEEMITTER.ITEMDUST, held_uid)
+  generate_particles(PARTICLEEMITTER.ITEMDUST, held_uid)
 
   -- play sound effect
   play_sfx(SFX_STORE, 1.1, 1.2)
-  print(string.format("Post store: %d", tostring(#self.slots)))
 end
 
 function Pouch:retrieve()
-  print(string.format("Pre retrieve: %d", tostring(#self.slots)))
-
   if #self.slots == 0 then
     return
   end
 
-  local held_uid = table.remove(self.slots, 1)
+  local held = table.remove(self.slots, 1)
 
-  -- local x, y, l = get_position(self.player_uid)
-  -- local fx_uid = spawn_entity(ENT_TYPE.FX_PICKUPEFFECT, x, y, l, 0, 0)
-  -- local fx = get_entity(fx_uid)
-  -- fx:set_texture(metadata.texture)
-  -- fx.animation_frame = metadata.animation_frame
-
-  local held = get_entity(held_uid)
-  held.flags = clr_flag(held.flags, ENT_FLAG.PAUSE_AI_AND_PHYSICS)
+  -- enable held entity
+  pick_up(self.player_uid, held.uid)
   held.flags = clr_flag(held.flags, ENT_FLAG.INVISIBLE)
-  pick_up(self.player_uid, held_uid)
+  held.flags = clr_flag(held.flags, ENT_FLAG.PAUSE_AI_AND_PHYSICS)
 
-  -- generate_particles(PARTICLEEMITTER.ITEMDUST, held_uid)
-  print(string.format("Post retrieve: %d", tostring(#self.slots)))
+  -- create pickup visual effect
+  generate_particles(PARTICLEEMITTER.ITEMDUST, held.uid)
 end
 
 --== Business logic ==--
@@ -147,17 +132,16 @@ local function ui(render_ctx)
 
     render_ctx:draw_screen_texture(slot_texture, 0, 0, bounds, Color:new(1, 1, 1, 1))
 
-    local slot_uid = pouches[1].slots[idx]
+    local item = pouches[1].slots[idx]
 
-    if slot_uid ~= nil then
-      local slot = get_entity(slot_uid)
-      local texture = slot:get_texture()
+    if item ~= nil then
+      local texture = item:get_texture()
 
       local texture_definition = get_texture_definition(texture)
       local columns = texture_definition.width / texture_definition.tile_width
       local rows = texture_definition.height / texture_definition.tile_height
-      local sprite_row = math.floor(slot.animation_frame // rows)
-      local sprite_column = math.floor(slot.animation_frame % columns)
+      local sprite_row = math.floor(item.animation_frame // rows)
+      local sprite_column = math.floor(item.animation_frame % columns)
 
       render_ctx:draw_screen_texture(texture, sprite_row, sprite_column, bounds, Color:new(1, 1, 1, 1))
     end
