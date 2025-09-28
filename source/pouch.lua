@@ -59,7 +59,7 @@ function Pouch:retrieve(player_uid)
   -- create pickup visual effect
   generate_particles(PARTICLEEMITTER.ITEMDUST, held_uid)
 
-  -- TODO: play sound effect
+  -- sound effect played by pickup
 end
 
 return Pouch
