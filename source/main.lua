@@ -1,5 +1,5 @@
 -- POUCH MOD
--- TODO: special tranzition ui, configurable what kind of entities are allowed to be stored, memory and callback cleanup
+-- TODO: special transition ui, configurable what kind of entities are allowed to be stored, configure ways of accessing the pouch
 
 meta = {
   name = 'Pouch',
@@ -21,6 +21,19 @@ end
 
 local function disable()
   is_enabled = false
+end
+
+---@param save_context SaveContext
+local function save_options(save_context)
+  save_context:save(json.encode(options))
+end
+
+---@param load_context LoadContext
+local function load_options(load_context)
+  local options_str = load_context:load()
+  if options_str ~= '' then
+    options = json.decode(options_str)
+  end
 end
 
 ---@param current_input INPUTS
@@ -73,7 +86,8 @@ local function game_update()
   end
 end
 
-local function user_interface(render_ctx)
+---@param render_context VanillaRenderContext
+local function user_interface(render_context)
   if not is_enabled then
     return
   end
@@ -86,7 +100,7 @@ local function user_interface(render_ctx)
       bounds.bottom = CONFIG.UI.BASE_Y
       bounds.top = bounds.bottom + CONFIG.UI.SLOT.HEIGHT
 
-      render_ctx:draw_screen_texture(CONFIG.UI.SLOT.TEXTURE, 0, 0, bounds, Color:new(1, 1, 1, CONFIG.UI.SLOT.BACKGROUND_ALPHA))
+      render_context:draw_screen_texture(CONFIG.UI.SLOT.TEXTURE, 0, 0, bounds, Color:new(1, 1, 1, CONFIG.UI.SLOT.BACKGROUND_ALPHA))
 
       local metadata = player.user_data.pouch.slots[jdx]
       if metadata ~= nil then
@@ -98,7 +112,7 @@ local function user_interface(render_ctx)
         local sprite_column = math.floor(metadata.animation_frame % columns)
 
         bounds = bounds:extrude(CONFIG.UI.SLOT.ICON_ZOOM_X, CONFIG.UI.SLOT.ICON_ZOOM_Y)
-        render_ctx:draw_screen_texture(texture, sprite_row, sprite_column, bounds, Color:new(1, 1, 1, CONFIG.UI.SLOT.ICON_ALPHA))
+        render_context:draw_screen_texture(texture, sprite_row, sprite_column, bounds, Color:new(1, 1, 1, CONFIG.UI.SLOT.ICON_ALPHA))
       end
     end
   end
@@ -113,6 +127,9 @@ register_option_int(
   CONFIG.POUCH.MIN_CAPACITY,
   CONFIG.POUCH.MAX_CAPACITY
 )
+
+set_callback(save_options, ON.SAVE)
+set_callback(load_options, ON.LOAD)
 
 set_callback(initialize, ON.START)
 set_callback(game_update, ON.GAMEFRAME)

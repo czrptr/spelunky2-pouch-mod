@@ -1,5 +1,3 @@
--- TODO: read and store from file for persistance
-
 ---@class PouchConfig
 ---@field MIN_CAPACITY integer Minimum number of slots allowed in pouch
 ---@field MAX_CAPACITY integer Maximum number of slots allowed in pouch
