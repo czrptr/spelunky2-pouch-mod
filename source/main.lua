@@ -20,6 +20,7 @@ local function disable()
   enabled = false
 end
 
+---@param sfx AudioSoundConfig
 local function play_sfx(sfx)
   local playing_sound = sfx.SOUND:play(true)
   playing_sound:set_pitch(sfx.PITCH)
