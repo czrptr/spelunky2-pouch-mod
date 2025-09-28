@@ -4,17 +4,17 @@ meta.description = 'Store held items and retrieve them later'
 meta.author = 'Quasar'
 
 local inspect = require('inspect')
--- TODO: UI, configurable size, configurable what kind of entities are allowed to be stored, memory and callback cleanup
+-- TODO: configurable what kind of entities are allowed to be stored, memory and callback cleanup
 
 local slot_texture = nil
 do
   local texture_def = TextureDefinition.new()
 
   texture_def.texture_path = 'slot.png'
-  texture_def.width = 128
-  texture_def.height = 128
-  texture_def.tile_width = 128
-  texture_def.tile_height = 128
+  texture_def.width = 28
+  texture_def.height = 28
+  texture_def.tile_width = 28
+  texture_def.tile_height = 28
   slot_texture = define_texture(texture_def)
 end
 
@@ -58,12 +58,11 @@ Pouch.__index = Pouch
 
 function Pouch:init()
   return setmetatable({
-    slots = {},
-    player_uid = nil
+    slots = {}
   }, Pouch)
 end
 
-function Pouch:store(held_uid)
+function Pouch:store(player_uid, held_uid)
   if #self.slots >= options.pouch_size then
     play_sfx(SFX_INVALID, 1.3, 0.775)
     return
@@ -77,21 +76,18 @@ function Pouch:store(held_uid)
   -- play sound effect
   play_sfx(SFX_STORE, 1.1, 1.2)
 
-  drop(self.player_uid, held_uid)
+  drop(player_uid, held_uid)
   move_entity(held_uid, 0, 0, 0, 0);
   kill_entity(held_uid)
 end
 
-function Pouch:retrieve()
+function Pouch:retrieve(player_uid)
   if #self.slots == 0 then
     return
   end
 
-  local held_uid = spawn_with_metadata(
-    self.player_uid,
-    table.remove(self.slots, 1)
-  )
-  pick_up(self.player_uid, held_uid)
+  local held_uid = spawn_with_metadata(player_uid, table.remove(self.slots, 1))
+  pick_up(player_uid, held_uid)
 
   -- create pickup visual effect
   generate_particles(PARTICLEEMITTER.ITEMDUST, held_uid)
@@ -99,87 +95,86 @@ end
 
 --== Business logic ==--
 
-local pouches = {}
-local previous_inputs = {}
+local function initialize_user_data()
+  for _, player in ipairs(get_local_players()) do
+    -- guard against other mods who use user_data
+    if player.user_data == nil then
+      player.user_data = {}
+    end
 
-local function initialize_and_register_pouches()
-  for idx, player in ipairs(get_local_players()) do
-    pouches[idx] = Pouch:init()
-    pouches[idx].player_uid = player.uid
-  end
-end
-
-local function register_pouches()
-  for idx, player in ipairs(get_local_players()) do
-    pouches[idx].player_uid = player.uid
+    player.user_data.pouch = Pouch:init()
+    player.user_data.previous_input = nil
   end
 end
 
 local function update()
-  for idx, player in ipairs(get_local_players()) do
+  for _, player in ipairs(get_local_players()) do
     local current_input = player.input.buttons
-    local previous_input = previous_inputs[idx]
+    local previous_input = player.user_data.previous_input
 
     if test_flag(current_input, INPUT_FLAG.DOWN) and was_just_pressed(current_input, previous_input, INPUT_FLAG.DOOR) then
-      print(inspect(pouches[idx]))
+      print(inspect(player.user_data.pouch))
     end
 
     if test_flag(current_input, INPUT_FLAG.UP) and was_just_pressed(current_input, previous_input, INPUT_FLAG.DOOR) then
       if player.holding_uid ~= -1 then
-        pouches[idx]:store(player.holding_uid)
+        player.user_data.pouch:store(player.uid, player.holding_uid)
       else
-        pouches[idx]:retrieve()
+        player.user_data.pouch:retrieve(player.uid)
       end
     end
 
-    previous_inputs[idx] = current_input
+    player.user_data.previous_input = current_input
   end
 end
 
 local function ui(render_ctx)
   local ASPECT_RATIO = 16 / 9
-  local UI_WIDTH = 0.05
+  local UI_WIDTH = 0.035
   local UI_HEIGHT = UI_WIDTH * ASPECT_RATIO
-  local UI_X = -0.95
-  local UI_Y = 0.7
-  local UI_MARGIN = 0.0075
+  local UI_X = -0.9625
+  local UI_Y = 0.67
+  local UI_MARGIN = 0.0035
+  local UI_STRIDE = 0.32
 
-  for idx = 1, options.pouch_size do
-    local bounds = AABB:new()
-    bounds.left = UI_X + (UI_WIDTH + UI_MARGIN) * (idx - 1)
-    bounds.right = bounds.left + UI_WIDTH
-    bounds.bottom = UI_Y
-    bounds.top = bounds.bottom + UI_HEIGHT
+  for idx, player in ipairs(get_local_players()) do
 
-    render_ctx:draw_screen_texture(slot_texture, 0, 0, bounds, Color:new(1, 1, 1, 1))
+    for jdx = 1, options.pouch_size do
+      local bounds = AABB:new()
+      bounds.left = UI_X + (UI_WIDTH + UI_MARGIN) * (jdx - 1) + UI_STRIDE * (idx - 1)
+      bounds.right = bounds.left + UI_WIDTH
+      bounds.bottom = UI_Y
+      bounds.top = bounds.bottom + UI_HEIGHT
 
-    local metadata = pouches[1].slots[idx]
+      render_ctx:draw_screen_texture(slot_texture, 0, 0, bounds, Color:new(1, 1, 1, 0.5))
 
-    if metadata ~= nil then
-      local texture = metadata.texture
+      local metadata = player.user_data.pouch.slots[jdx]
 
-      local texture_definition = get_texture_definition(texture)
-      local columns = texture_definition.width / texture_definition.tile_width
-      local rows = texture_definition.height / texture_definition.tile_height
-      local sprite_row = math.floor(metadata.animation_frame // rows)
-      local sprite_column = math.floor(metadata.animation_frame % columns)
+      if metadata ~= nil then
+        local texture = metadata.texture
 
-      render_ctx:draw_screen_texture(texture, sprite_row, sprite_column, bounds, Color:new(1, 1, 1, 1))
+        local texture_definition = get_texture_definition(texture)
+        local columns = texture_definition.width / texture_definition.tile_width
+        local rows = texture_definition.height / texture_definition.tile_height
+        local sprite_row = math.floor(metadata.animation_frame // rows)
+        local sprite_column = math.floor(metadata.animation_frame % columns)
+
+        render_ctx:draw_screen_texture(texture, sprite_row, sprite_column, bounds, Color:new(1, 1, 1, 0.5))
+      end
     end
   end
 end
 
 --== Hooks ==--
 
-register_option_int('pouch_size', 'Pouch capacity', 3, 1, 5)
+register_option_int('pouch_size', 'Pouch capacity', 7, 1, 7)
 
 set_callback(function ()
-  initialize_and_register_pouches()
+  initialize_user_data()
 
   local on_frame, on_hud
 
   set_callback(function ()
-    register_pouches()
     on_frame = set_callback(update, ON.FRAME)
     on_hud = set_callback(ui, ON.RENDER_POST_HUD)
   end, ON.LEVEL)
