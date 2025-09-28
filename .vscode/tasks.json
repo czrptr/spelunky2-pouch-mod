@@ -1,5 +1,6 @@
 {
   // define "user.spelunky2.path" in user settings.json
+  // TODO Hot reload the mod using the Overlunky scripts tab
   "tasks": [
     {
       "label": "Install",
