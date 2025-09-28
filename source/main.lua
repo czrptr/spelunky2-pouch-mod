@@ -4,7 +4,17 @@ meta.description = 'Store held items and retrieve them later'
 meta.author = 'Quasar'
 
 local inspect = require('inspect')
--- TODO: configurable what kind of entities are allowed to be stored, memory and callback cleanup
+-- TODO: special tranzition ui, configurable what kind of entities are allowed to be stored, memory and callback cleanup
+
+local enabled = false
+
+local function enable()
+  enabled = true
+end
+
+local function disable()
+  enabled = false
+end
 
 local slot_texture = nil
 do
@@ -95,7 +105,7 @@ end
 
 --== Business logic ==--
 
-local function initialize_user_data()
+local function initialize()
   for _, player in ipairs(get_local_players()) do
     -- guard against other mods who use user_data
     if player.user_data == nil then
@@ -107,7 +117,11 @@ local function initialize_user_data()
   end
 end
 
-local function update()
+local function game_update()
+  if not enabled then
+    return
+  end
+
   for _, player in ipairs(get_local_players()) do
     local current_input = player.input.buttons
     local previous_input = player.user_data.previous_input
@@ -128,7 +142,11 @@ local function update()
   end
 end
 
-local function ui(render_ctx)
+local function user_interface(render_ctx)
+  if not enabled then
+    return
+  end
+
   local ASPECT_RATIO = 16 / 9
   local UI_WIDTH = 0.035
   local UI_HEIGHT = UI_WIDTH * ASPECT_RATIO
@@ -169,18 +187,10 @@ end
 
 register_option_int('pouch_size', 'Pouch capacity', 7, 1, 7)
 
-set_callback(function ()
-  initialize_user_data()
-
-  local on_frame, on_hud
-
-  set_callback(function ()
-    on_frame = set_callback(update, ON.FRAME)
-    on_hud = set_callback(ui, ON.RENDER_POST_HUD)
-  end, ON.LEVEL)
-
-  set_callback(function ()
-    clear_callback(on_frame)
-    clear_callback(on_hud)
-  end, ON.PRE_LEVEL_DESTRUCTION)
-end, ON.START)
+set_callback(initialize, ON.START)
+set_callback(game_update, ON.GAMEFRAME)
+set_callback(user_interface, ON.RENDER_POST_HUD)
+set_callback(enable, ON.LEVEL)
+set_callback(disable, ON.MENU)
+set_callback(disable, ON.DEATH)
+set_callback(disable, ON.TRANSITION)
