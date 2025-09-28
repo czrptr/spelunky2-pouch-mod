@@ -1,10 +1,9 @@
-local inspect = require('inspect')
-
 meta.name = 'Pouch'
 meta.version = '0.1'
 meta.description = 'Store held items and retrieve them later'
 meta.author = 'Quasar'
 
+local inspect = require('inspect')
 -- TODO: UI, configurable size, configurable what kind of entities are allowed to be stored, memory and callback cleanup
 
 local slot_texture = nil
@@ -33,15 +32,34 @@ local function was_just_pressed(current_input, previous_input, input_flag)
   return test_flag(current_input, input_flag) and not test_flag(previous_input, input_flag)
 end
 
+local function metadata_from(uid)
+  local entity = get_entity(uid)
+  return {
+    type = entity.type.id,
+    flags = get_entity(uid):get_metadata(),
+    texture = entity:get_texture(),
+    animation_frame = entity.animation_frame,
+  }
+end
+
+local function spawn_with_metadata(uid, metadata)
+  local x, y, l = get_position(uid)
+  local item_uid = spawn_entity(metadata.type, x, y, l, 0, 0)
+  local item = get_entity(item_uid)
+  item:apply_metadata(metadata.flags)
+  item.animation_frame = metadata.animation_frame
+  return item_uid
+end
+
 --== Pouch ==--
 
 local Pouch = {}
 Pouch.__index = Pouch
 
-function Pouch:init(player_uid)
+function Pouch:init()
   return setmetatable({
     slots = {},
-    player_uid = player_uid
+    player_uid = nil
   }, Pouch)
 end
 
@@ -51,20 +69,17 @@ function Pouch:store(held_uid)
     return
   end
 
-  local held = get_entity(held_uid)
-  table.insert(self.slots, 1, held)
-
-  -- disable held entity
-  drop(self.player_uid, held_uid)
-  held.flags = set_flag(held.flags, ENT_FLAG.INVISIBLE)
-  held.flags = set_flag(held.flags, ENT_FLAG.PAUSE_AI_AND_PHYSICS)
-  move_entity(held_uid, 0, 0, 0, 0);
+  table.insert(self.slots, 1, metadata_from(held_uid))
 
   -- create pickup visual effect
   generate_particles(PARTICLEEMITTER.ITEMDUST, held_uid)
 
   -- play sound effect
   play_sfx(SFX_STORE, 1.1, 1.2)
+
+  drop(self.player_uid, held_uid)
+  move_entity(held_uid, 0, 0, 0, 0);
+  kill_entity(held_uid)
 end
 
 function Pouch:retrieve()
@@ -72,15 +87,14 @@ function Pouch:retrieve()
     return
   end
 
-  local held = table.remove(self.slots, 1)
-
-  -- enable held entity
-  pick_up(self.player_uid, held.uid)
-  held.flags = clr_flag(held.flags, ENT_FLAG.INVISIBLE)
-  held.flags = clr_flag(held.flags, ENT_FLAG.PAUSE_AI_AND_PHYSICS)
+  local held_uid = spawn_with_metadata(
+    self.player_uid,
+    table.remove(self.slots, 1)
+  )
+  pick_up(self.player_uid, held_uid)
 
   -- create pickup visual effect
-  generate_particles(PARTICLEEMITTER.ITEMDUST, held.uid)
+  generate_particles(PARTICLEEMITTER.ITEMDUST, held_uid)
 end
 
 --== Business logic ==--
@@ -88,9 +102,16 @@ end
 local pouches = {}
 local previous_inputs = {}
 
-local function init()
+local function initialize_and_register_pouches()
   for idx, player in ipairs(get_local_players()) do
-    pouches[idx] = Pouch:init(player.uid)
+    pouches[idx] = Pouch:init()
+    pouches[idx].player_uid = player.uid
+  end
+end
+
+local function register_pouches()
+  for idx, player in ipairs(get_local_players()) do
+    pouches[idx].player_uid = player.uid
   end
 end
 
@@ -132,16 +153,16 @@ local function ui(render_ctx)
 
     render_ctx:draw_screen_texture(slot_texture, 0, 0, bounds, Color:new(1, 1, 1, 1))
 
-    local item = pouches[1].slots[idx]
+    local metadata = pouches[1].slots[idx]
 
-    if item ~= nil then
-      local texture = item:get_texture()
+    if metadata ~= nil then
+      local texture = metadata.texture
 
       local texture_definition = get_texture_definition(texture)
       local columns = texture_definition.width / texture_definition.tile_width
       local rows = texture_definition.height / texture_definition.tile_height
-      local sprite_row = math.floor(item.animation_frame // rows)
-      local sprite_column = math.floor(item.animation_frame % columns)
+      local sprite_row = math.floor(metadata.animation_frame // rows)
+      local sprite_column = math.floor(metadata.animation_frame % columns)
 
       render_ctx:draw_screen_texture(texture, sprite_row, sprite_column, bounds, Color:new(1, 1, 1, 1))
     end
@@ -153,7 +174,18 @@ end
 register_option_int('pouch_size', 'Pouch capacity', 3, 1, 5)
 
 set_callback(function ()
-  init()
-  set_callback(update, ON.FRAME)
-  set_callback(ui, ON.RENDER_POST_HUD)
+  initialize_and_register_pouches()
+
+  local on_frame, on_hud
+
+  set_callback(function ()
+    register_pouches()
+    on_frame = set_callback(update, ON.FRAME)
+    on_hud = set_callback(ui, ON.RENDER_POST_HUD)
+  end, ON.LEVEL)
+
+  set_callback(function ()
+    clear_callback(on_frame)
+    clear_callback(on_hud)
+  end, ON.PRE_LEVEL_DESTRUCTION)
 end, ON.START)
