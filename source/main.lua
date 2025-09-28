@@ -1,10 +1,12 @@
 -- POUCH MOD
 -- TODO: special tranzition ui, configurable what kind of entities are allowed to be stored, memory and callback cleanup
 
-meta.name = 'Pouch'
-meta.version = '0.1'
-meta.description = 'Store held items and retrieve them later'
-meta.author = 'Quasar'
+meta = {
+  name = 'Pouch',
+  version = '0.1',
+  description = 'Store held items and retrieve them later',
+  author = 'Quasar',
+}
 
 local CONFIG = require('config')
 local Pouch = require('pouch')
