@@ -15,7 +15,6 @@ local SOUND_STORE = get_sound(VANILLA_SOUND.MOUNTS_MOUNT)
 local SOUND_INVALID = get_sound(VANILLA_SOUND.SHOP_SHOP_NOPE)
 ---@cast SOUND_INVALID CustomSound -- will never be nil
 
-
 ---@class AudioSoundConfig
 ---@field SOUND CustomSound Sound effect
 ---@field PITCH number Pitch multiplier
@@ -56,14 +55,20 @@ local ASPECT_RATIO = 16 / 9
 ---@field WIDTH number Screen-space width of each pouch slot
 ---@field HEIGHT number Screen-space height of each pouch slot (calculated from width and aspect ratio)
 ---@field MARGIN number Screen-space margin between adjacent slots
----@field ALPHA number Transparency level for slot rendering
+---@field BACKGROUND_ALPHA number Transparency level for slot background rendering
+---@field ICON_ALPHA number Transparency level for slot icon rendering
+---@field ICON_ZOOM_X TEXTURE Zoom factor used to calculated icon sized relative to background size (x-axis)
+---@field ICON_ZOOM_Y TEXTURE Zoom factor used to calculated icon sized relative to background size (y-axis)
 ---@field TEXTURE TEXTURE Texture used for rendering empty slot backgrounds
 local UI_SLOT_CONFIG = {
   WIDTH = 0.035,
   MARGIN = 0.0035,
-  ALPHA = 0.5,
+  BACKGROUND_ALPHA = 0.35,
+  ICON_ALPHA = 0.5,
+  ICON_ZOOM_X = 0.008
 }
 UI_SLOT_CONFIG.HEIGHT = UI_SLOT_CONFIG.WIDTH * ASPECT_RATIO
+UI_SLOT_CONFIG.ICON_ZOOM_Y = UI_SLOT_CONFIG.ICON_ZOOM_X * ASPECT_RATIO
 do
   local TEXTURE_WIDHT = 28
   local TEXTURE_HEIGHT = 28

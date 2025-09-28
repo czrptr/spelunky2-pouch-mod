@@ -84,7 +84,7 @@ local function user_interface(render_ctx)
       bounds.bottom = CONFIG.UI.BASE_Y
       bounds.top = bounds.bottom + CONFIG.UI.SLOT.HEIGHT
 
-      render_ctx:draw_screen_texture(CONFIG.UI.SLOT.TEXTURE, 0, 0, bounds, Color:new(1, 1, 1, CONFIG.UI.SLOT.ALPHA))
+      render_ctx:draw_screen_texture(CONFIG.UI.SLOT.TEXTURE, 0, 0, bounds, Color:new(1, 1, 1, CONFIG.UI.SLOT.BACKGROUND_ALPHA))
 
       local metadata = player.user_data.pouch.slots[jdx]
       if metadata ~= nil then
@@ -95,7 +95,8 @@ local function user_interface(render_ctx)
         local sprite_row = math.floor(metadata.animation_frame // rows)
         local sprite_column = math.floor(metadata.animation_frame % columns)
 
-        render_ctx:draw_screen_texture(texture, sprite_row, sprite_column, bounds, Color:new(1, 1, 1, CONFIG.UI.SLOT.ALPHA))
+        bounds = bounds:extrude(CONFIG.UI.SLOT.ICON_ZOOM_X, CONFIG.UI.SLOT.ICON_ZOOM_Y)
+        render_ctx:draw_screen_texture(texture, sprite_row, sprite_column, bounds, Color:new(1, 1, 1, CONFIG.UI.SLOT.ICON_ALPHA))
       end
     end
   end
