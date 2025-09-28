@@ -7,7 +7,8 @@ meta.description = 'Store held items and retrieve them later'
 meta.author = 'Quasar'
 
 local CONFIG = require('config')
-local Metadata = require('metadata')
+local Pouch = require('pouch')
+
 -- ==============================================================================
 
 local enabled = false
@@ -20,66 +21,24 @@ local function disable()
   enabled = false
 end
 
----@param sfx AudioSoundConfig
-local function play_sfx(sfx)
-  local playing_sound = sfx.SOUND:play(true)
-  playing_sound:set_pitch(sfx.PITCH)
-  playing_sound:set_volume(sfx.VOLUME)
-  playing_sound:set_pause(false)
-end
-
 local function was_just_pressed(current_input, previous_input, input_flag)
   return test_flag(current_input, input_flag) and not test_flag(previous_input, input_flag)
 end
 
---== Pouch ==--
-
-local Pouch = {}
-Pouch.__index = Pouch
-
-function Pouch:init()
-  return setmetatable({
-    slots = {}
-  }, Pouch)
-end
-
-function Pouch:store(player_uid, held_uid)
-  if #self.slots >= options.pouch_size then
-    play_sfx(CONFIG.AUDIO.INVALID)
-    return
-  end
-
-  table.insert(self.slots, 1, Metadata:from_entity(held_uid))
-
-  -- create pickup visual effect
-  generate_particles(PARTICLEEMITTER.ITEMDUST, held_uid)
-
-  -- play sound effect
-  play_sfx(CONFIG.AUDIO.STORE)
-
-  drop(player_uid, held_uid)
-  move_entity(held_uid, 0, 0, 0, 0);
-  kill_entity(held_uid)
-end
-
-function Pouch:retrieve(player_uid)
-  if #self.slots == 0 then
-    return
-  end
-
-  local held_uid = table.remove(self.slots, 1):spawn_at(player_uid)
-  pick_up(player_uid, held_uid)
-
-  -- create pickup visual effect
-  generate_particles(PARTICLEEMITTER.ITEMDUST, held_uid)
-end
-
 --== Business logic ==--
+
+---@class UserData
+---@field pouch Pouch
+---@field previous_input integer?
+
+---@class Player
+---@field user_data UserData
 
 local function initialize()
   for _, player in ipairs(get_local_players()) do
     -- guard against other mods who use user_data
     if player.user_data == nil then
+      ---@diagnostic disable-next-line: missing-fields
       player.user_data = {}
     end
 
