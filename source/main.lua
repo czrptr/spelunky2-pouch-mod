@@ -11,25 +11,27 @@ local Pouch = require('pouch')
 
 -- ==============================================================================
 
-local enabled = false
+local is_enabled  = false
 
 local function enable()
-  enabled = true
+  is_enabled = true
 end
 
 local function disable()
-  enabled = false
+  is_enabled = false
 end
 
+---@param current_input INPUTS
+---@param previous_input INPUTS
+---@param input_flag INPUT_FLAG
+---@return boolean
 local function was_just_pressed(current_input, previous_input, input_flag)
   return test_flag(current_input, input_flag) and not test_flag(previous_input, input_flag)
 end
 
---== Business logic ==--
-
 ---@class UserData
 ---@field pouch Pouch
----@field previous_input integer?
+---@field previous_input INPUTS?
 
 ---@class Player
 ---@field user_data UserData
@@ -48,13 +50,14 @@ local function initialize()
 end
 
 local function game_update()
-  if not enabled then
+  if not is_enabled then
     return
   end
 
   for _, player in ipairs(get_local_players()) do
     local current_input = player.input.buttons
     local previous_input = player.user_data.previous_input
+    ---@cast previous_input INPUTS
 
     if test_flag(current_input, INPUT_FLAG.UP) and was_just_pressed(current_input, previous_input, INPUT_FLAG.DOOR) then
       if player.holding_uid ~= -1 then
@@ -69,13 +72,11 @@ local function game_update()
 end
 
 local function user_interface(render_ctx)
-  if not enabled then
+  if not is_enabled then
     return
   end
 
-
   for idx, player in ipairs(get_local_players()) do
-
     for jdx = 1, options.pouch_size do
       local bounds = AABB:new()
       bounds.left = CONFIG.UI.BASE_X + (CONFIG.UI.SLOT.WIDTH + CONFIG.UI.SLOT.MARGIN) * (jdx - 1) + CONFIG.UI.PLAYER_STRIDE * (idx - 1)
@@ -86,10 +87,8 @@ local function user_interface(render_ctx)
       render_ctx:draw_screen_texture(CONFIG.UI.SLOT.TEXTURE, 0, 0, bounds, Color:new(1, 1, 1, CONFIG.UI.SLOT.ALPHA))
 
       local metadata = player.user_data.pouch.slots[jdx]
-
       if metadata ~= nil then
         local texture = metadata.texture
-
         local texture_definition = get_texture_definition(texture)
         local columns = texture_definition.width / texture_definition.tile_width
         local rows = texture_definition.height / texture_definition.tile_height
@@ -102,7 +101,7 @@ local function user_interface(render_ctx)
   end
 end
 
---== Hooks ==--
+-- ==============================================================================
 
 register_option_int(
   'pouch_size', -- name
@@ -115,6 +114,7 @@ register_option_int(
 set_callback(initialize, ON.START)
 set_callback(game_update, ON.GAMEFRAME)
 set_callback(user_interface, ON.RENDER_POST_HUD)
+
 set_callback(enable, ON.LEVEL)
 set_callback(disable, ON.MENU)
 set_callback(disable, ON.DEATH)
