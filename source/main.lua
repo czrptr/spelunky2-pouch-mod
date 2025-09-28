@@ -7,6 +7,7 @@ meta.description = 'Store held items and retrieve them later'
 meta.author = 'Quasar'
 
 local CONFIG = require('config')
+local Metadata = require('metadata')
 -- ==============================================================================
 
 local enabled = false
@@ -30,25 +31,6 @@ local function was_just_pressed(current_input, previous_input, input_flag)
   return test_flag(current_input, input_flag) and not test_flag(previous_input, input_flag)
 end
 
-local function metadata_from(uid)
-  local entity = get_entity(uid)
-  return {
-    type = entity.type.id,
-    flags = get_entity(uid):get_metadata(),
-    texture = entity:get_texture(),
-    animation_frame = entity.animation_frame,
-  }
-end
-
-local function spawn_with_metadata(uid, metadata)
-  local x, y, l = get_position(uid)
-  local item_uid = spawn_entity(metadata.type, x, y, l, 0, 0)
-  local item = get_entity(item_uid)
-  item:apply_metadata(metadata.flags)
-  item.animation_frame = metadata.animation_frame
-  return item_uid
-end
-
 --== Pouch ==--
 
 local Pouch = {}
@@ -66,7 +48,7 @@ function Pouch:store(player_uid, held_uid)
     return
   end
 
-  table.insert(self.slots, 1, metadata_from(held_uid))
+  table.insert(self.slots, 1, Metadata:from_entity(held_uid))
 
   -- create pickup visual effect
   generate_particles(PARTICLEEMITTER.ITEMDUST, held_uid)
@@ -84,7 +66,7 @@ function Pouch:retrieve(player_uid)
     return
   end
 
-  local held_uid = spawn_with_metadata(player_uid, table.remove(self.slots, 1))
+  local held_uid = table.remove(self.slots, 1):spawn_at(player_uid)
   pick_up(player_uid, held_uid)
 
   -- create pickup visual effect
