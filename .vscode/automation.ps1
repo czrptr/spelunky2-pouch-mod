@@ -276,18 +276,18 @@ $rect = Get-Window-Rect -Handle $handle
 
 # Skip to gameplay using Overlunky Skip intro script autoloading
 
-# > Game
-Click-In-Window -Handle $handle -Rect $rect -X 250 -Y 6 -Anchor TopLeft
-# > Players
-Click-In-Window -Handle $handle -Rect $rect -X 250 -Y 130 -Anchor TopLeft
-# > Number of players = 2
-Click-In-Window -Handle $handle -Rect $rect -X 620 -Y 150 -Anchor TopLeft
-# > Player 2
-Click-In-Window -Handle $handle -Rect $rect -X 620 -Y 290 -Anchor TopLeft
-# > Keyboard 2
-Click-In-Window -Handle $handle -Rect $rect -X 620 -Y 345 -Anchor TopLeft
-# Exit menu
-Click-In-Window -Handle $handle -Rect $rect -X 0 -Y 0 -Anchor Center
+# # > Game
+# Click-In-Window -Handle $handle -Rect $rect -X 250 -Y 6 -Anchor TopLeft
+# # > Players
+# Click-In-Window -Handle $handle -Rect $rect -X 250 -Y 130 -Anchor TopLeft
+# # > Number of players = 2
+# Click-In-Window -Handle $handle -Rect $rect -X 620 -Y 150 -Anchor TopLeft
+# # > Player 2
+# Click-In-Window -Handle $handle -Rect $rect -X 620 -Y 290 -Anchor TopLeft
+# # > Keyboard 2
+# Click-In-Window -Handle $handle -Rect $rect -X 620 -Y 345 -Anchor TopLeft
+# # Exit menu
+# Click-In-Window -Handle $handle -Rect $rect -X 0 -Y 0 -Anchor Center
 
 # Focus VSCode
 $gameClosed = Wait-For-Process-Close -Name -Timeout 0 -CheckInterval 1000

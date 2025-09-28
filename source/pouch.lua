@@ -11,6 +11,29 @@ local function play_sfx(sfx)
   playing_sound:set_pause(false)
 end
 
+---@param uid integer
+---@return boolean
+local function is_storable(uid)
+  local entity = get_entity(uid)
+  local type = entity.type.id
+  if CONFIG.STORABLE.ALWAYS[type] then
+    return true
+  end
+  if CONFIG.STORABLE.IDOLS[type] and options.idols_are_storable then
+    return true
+  end
+  if test_flag(entity.flags, ENT_FLAG.DEAD) then
+    return true
+  end
+  if CONFIG.STORABLE.PETS[type] and options.pets_are_storable then
+    return true
+  end
+  if CONFIG.STORABLE.MOUNTS[type] and options.mounts_are_storable then
+    return (entity --[[@as Mount]]).tamed
+  end
+  return false
+end
+
 -- ==============================================================================
 
 ---@class Pouch
@@ -29,7 +52,7 @@ end
 ---@param player_uid integer
 ---@param held_uid integer
 function Pouch:store(player_uid, held_uid)
-  if #self.slots >= options.pouch_size then
+  if #self.slots >= options.pouch_size or not is_storable(held_uid) then
     play_sfx(CONFIG.AUDIO.INVALID)
     return
   end

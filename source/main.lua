@@ -1,5 +1,10 @@
 -- POUCH MOD
--- TODO: special transition ui, configurable what kind of entities are allowed to be stored, configure ways of accessing the pouch
+--[[
+TODO:
+  - add a separate display at the bottom of the screen during level trasitions that shows the player head
+    (maybe over a pouch) and a canvas background over which the items will be displayed
+  - add FIFO (currently only option), LIFO and SELECTABLE options for pouch interactions
+]]
 
 meta = {
   name = 'Pouch',
@@ -121,11 +126,35 @@ end
 -- ==============================================================================
 
 register_option_int(
-  'pouch_size', -- name
-  'Pouch capacity', -- description
+  'pouch_size',
+  'Pouch capacity',
   CONFIG.POUCH.DEFAULT_CAPACITY,
   CONFIG.POUCH.MIN_CAPACITY,
   CONFIG.POUCH.MAX_CAPACITY
+)
+
+register_option_bool(
+  'idols_are_storable',
+  'Idols can be stored',
+  false
+)
+
+register_option_bool(
+  'pets_are_storable',
+  'Pets can be stored',
+  false
+)
+
+register_option_bool(
+  'mounts_are_storable',
+  'Mounts can be stored after they are tamed',
+  false
+)
+
+register_option_bool(
+  'monster_are_storable',
+  'Monsters can be stored after they are killed',
+  true
 )
 
 set_callback(save_options, ON.SAVE)
