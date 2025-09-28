@@ -1,10 +1,13 @@
+-- POUCH MOD
+-- TODO: special tranzition ui, configurable what kind of entities are allowed to be stored, memory and callback cleanup
+
 meta.name = 'Pouch'
 meta.version = '0.1'
 meta.description = 'Store held items and retrieve them later'
 meta.author = 'Quasar'
 
-local inspect = require('inspect')
--- TODO: special tranzition ui, configurable what kind of entities are allowed to be stored, memory and callback cleanup
+local CONFIG = require('config')
+-- ==============================================================================
 
 local enabled = false
 
@@ -16,25 +19,10 @@ local function disable()
   enabled = false
 end
 
-local slot_texture = nil
-do
-  local texture_def = TextureDefinition.new()
-
-  texture_def.texture_path = 'slot.png'
-  texture_def.width = 28
-  texture_def.height = 28
-  texture_def.tile_width = 28
-  texture_def.tile_height = 28
-  slot_texture = define_texture(texture_def)
-end
-
-local SFX_STORE = get_sound(VANILLA_SOUND.MOUNTS_MOUNT)
-local SFX_INVALID = get_sound(VANILLA_SOUND.SHOP_SHOP_NOPE)
-
-local function play_sfx(sfx, pitch, volume)
-  local playing_sound = sfx:play(true)
-  playing_sound:set_pitch(pitch)
-  playing_sound:set_volume(volume)
+local function play_sfx(sfx)
+  local playing_sound = sfx.SOUND:play(true)
+  playing_sound:set_pitch(sfx.PITCH)
+  playing_sound:set_volume(sfx.VOLUME)
   playing_sound:set_pause(false)
 end
 
@@ -74,7 +62,7 @@ end
 
 function Pouch:store(player_uid, held_uid)
   if #self.slots >= options.pouch_size then
-    play_sfx(SFX_INVALID, 1.3, 0.775)
+    play_sfx(CONFIG.AUDIO.INVALID)
     return
   end
 
@@ -84,7 +72,7 @@ function Pouch:store(player_uid, held_uid)
   generate_particles(PARTICLEEMITTER.ITEMDUST, held_uid)
 
   -- play sound effect
-  play_sfx(SFX_STORE, 1.1, 1.2)
+  play_sfx(CONFIG.AUDIO.STORE)
 
   drop(player_uid, held_uid)
   move_entity(held_uid, 0, 0, 0, 0);
@@ -126,10 +114,6 @@ local function game_update()
     local current_input = player.input.buttons
     local previous_input = player.user_data.previous_input
 
-    if test_flag(current_input, INPUT_FLAG.DOWN) and was_just_pressed(current_input, previous_input, INPUT_FLAG.DOOR) then
-      print(inspect(player.user_data.pouch))
-    end
-
     if test_flag(current_input, INPUT_FLAG.UP) and was_just_pressed(current_input, previous_input, INPUT_FLAG.DOOR) then
       if player.holding_uid ~= -1 then
         player.user_data.pouch:store(player.uid, player.holding_uid)
@@ -147,24 +131,17 @@ local function user_interface(render_ctx)
     return
   end
 
-  local ASPECT_RATIO = 16 / 9
-  local UI_WIDTH = 0.035
-  local UI_HEIGHT = UI_WIDTH * ASPECT_RATIO
-  local UI_X = -0.9625
-  local UI_Y = 0.67
-  local UI_MARGIN = 0.0035
-  local UI_STRIDE = 0.32
 
   for idx, player in ipairs(get_local_players()) do
 
     for jdx = 1, options.pouch_size do
       local bounds = AABB:new()
-      bounds.left = UI_X + (UI_WIDTH + UI_MARGIN) * (jdx - 1) + UI_STRIDE * (idx - 1)
-      bounds.right = bounds.left + UI_WIDTH
-      bounds.bottom = UI_Y
-      bounds.top = bounds.bottom + UI_HEIGHT
+      bounds.left = CONFIG.UI.BASE_X + (CONFIG.UI.SLOT.WIDTH + CONFIG.UI.SLOT.MARGIN) * (jdx - 1) + CONFIG.UI.PLAYER_STRIDE * (idx - 1)
+      bounds.right = bounds.left + CONFIG.UI.SLOT.WIDTH
+      bounds.bottom = CONFIG.UI.BASE_Y
+      bounds.top = bounds.bottom + CONFIG.UI.SLOT.HEIGHT
 
-      render_ctx:draw_screen_texture(slot_texture, 0, 0, bounds, Color:new(1, 1, 1, 0.5))
+      render_ctx:draw_screen_texture(CONFIG.UI.SLOT.TEXTURE, 0, 0, bounds, Color:new(1, 1, 1, CONFIG.UI.SLOT.ALPHA))
 
       local metadata = player.user_data.pouch.slots[jdx]
 
@@ -177,7 +154,7 @@ local function user_interface(render_ctx)
         local sprite_row = math.floor(metadata.animation_frame // rows)
         local sprite_column = math.floor(metadata.animation_frame % columns)
 
-        render_ctx:draw_screen_texture(texture, sprite_row, sprite_column, bounds, Color:new(1, 1, 1, 0.5))
+        render_ctx:draw_screen_texture(texture, sprite_row, sprite_column, bounds, Color:new(1, 1, 1, CONFIG.UI.SLOT.ALPHA))
       end
     end
   end
@@ -185,7 +162,13 @@ end
 
 --== Hooks ==--
 
-register_option_int('pouch_size', 'Pouch capacity', 7, 1, 7)
+register_option_int(
+  'pouch_size', -- name
+  'Pouch capacity', -- description
+  CONFIG.POUCH.DEFAULT_CAPACITY,
+  CONFIG.POUCH.MIN_CAPACITY,
+  CONFIG.POUCH.MAX_CAPACITY
+)
 
 set_callback(initialize, ON.START)
 set_callback(game_update, ON.GAMEFRAME)
