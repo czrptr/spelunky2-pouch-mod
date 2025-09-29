@@ -90,16 +90,6 @@ do
   UI_SLOT_CONFIG.TEXTURE = define_texture(texture_def)
 end
 
----@class UiPouchDisplay
----@field ROPE integer Display a rope
----@field HANGING_1 integer Display player hanging with legs down
----@field HANGING_2 integer Display player hanging with legs to the side
-local UI_POUCH_DISPLAY<const> = {
-  ROPE = 0,
-  HANGING_1 = 1,
-  HANGING_2 = 2,
-}
-
 ---@class UiPouchConfig
 ---@field BASE_X number Screen-space X coordinate for pouch of first player
 ---@field BASE_Y number Screen-space Y coordinate for pouch of first player
@@ -107,13 +97,11 @@ local UI_POUCH_DISPLAY<const> = {
 ---@field WIDTH number Screen-space width of each pouch
 ---@field HEIGHT number Screen-space height of each pouch (calculated from width and aspect ratio)
 ---@field TEXTURE TEXTURE Texture used for rendering empty slot backgrounds
----@field DISPLAY UiPouchDisplay How the pouch will be displayed
 local UI_POUCH_CONFIG<const> = {
   BASE_X = -0.89,
   BASE_Y = -0.98,
   PLAYER_STRIDE = 0.32,
   WIDTH = 0.07,
-  DISPLAY = UI_POUCH_DISPLAY
 }
 do
   local TEXTURE_SIZE = 256
@@ -135,7 +123,6 @@ end
 ---@field WIDTH number Screen-space width of each pouch
 ---@field HEIGHT number Screen-space height of each pouch (calculated from width and aspect ratio)
 ---@field TEXTURE TEXTURE Texture used for rendering empty slot backgrounds
----@field DISPLAY UiPouchDisplay How the pouch will be displayed
 local UI_BACKGROUND_CONFIG<const> = {
   BASE_X = UI_POUCH_CONFIG.BASE_X + 0.005,
   BASE_Y = UI_POUCH_CONFIG.BASE_Y - 0.18,

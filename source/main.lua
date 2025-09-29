@@ -23,22 +23,12 @@ local Pouch = require('pouch')
 ---@type boolean
 local is_enabled = false
 
----@type UiPouchDisplay[]
-local pouches_displays = {}
-
 local function enable()
   is_enabled = true
 end
 
 local function disable()
   is_enabled = false
-end
-
-local function on_transition()
-  disable()
-  for idx, _ in ipairs(get_local_players()) do
-    pouches_displays[idx] = prng:random(0, 1000) % 3 --[[@as UiPouchDisplay]]
-  end
 end
 
 ---@param save_context SaveContext
@@ -151,19 +141,9 @@ local function user_interface_transition(render_context)
     render_context:draw_screen_texture(CONFIG.UI.POUCH.TEXTURE, 0, 0, bounds, Color:new(1, 1, 1, 1))
 
     local player_texture = player:get_texture()
-    if pouches_displays[idx] == CONFIG.UI.POUCH.DISPLAY.ROPE then
-      local zoom = -0.002
-      bounds = bounds:extrude(zoom, zoom * CONFIG.UI.ASPECT_RATIO):offset(-0.025, 0.01)
-      render_context:draw_screen_texture(player_texture, 9, 14, bounds, Color:new(1, 1, 1, 1), -0.2, 0, 0)
-    else
-      local zoom = 0.01
-      bounds = bounds:extrude(zoom, zoom * CONFIG.UI.ASPECT_RATIO):offset(-0.045, 0.028)
-      if pouches_displays[idx] == CONFIG.UI.POUCH.DISPLAY.HANGING_1 then
-        render_context:draw_screen_texture(player_texture, 3, 8, bounds, Color:new(1, 1, 1, 1))
-      else
-        render_context:draw_screen_texture(player_texture, 3, 11, bounds, Color:new(1, 1, 1, 1))
-      end
-    end
+    local zoom = -0.002
+    bounds = bounds:extrude(zoom, zoom * CONFIG.UI.ASPECT_RATIO):offset(-0.025, 0.01)
+    render_context:draw_screen_texture(player_texture, 9, 14, bounds, Color:new(1, 1, 1, 1), -0.2, 0, 0)
   end
 end
 
@@ -220,4 +200,4 @@ set_callback(user_interface, ON.RENDER_POST_HUD)
 set_callback(enable, ON.LEVEL)
 set_callback(disable, ON.MENU)
 set_callback(disable, ON.DEATH)
-set_callback(on_transition, ON.TRANSITION)
+set_callback(disable, ON.TRANSITION)
