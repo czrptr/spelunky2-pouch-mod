@@ -1,8 +1,7 @@
 -- POUCH MOD
 --[[
 TODO:
-  - add a separate display at the bottom of the screen during level trasitions that shows the player head
-    (maybe over a pouch) and a canvas background over which the items will be displayed
+  - add x-s or dots to the pouch background texture
   - add FIFO (currently only option), LIFO and SELECTABLE options for pouch interactions
   - fade slots to invisible when menu is opened
   -- change capacity to starting capacity and add item that expands the capacity to item pools
@@ -144,6 +143,27 @@ local function user_interface_transition(render_context)
     local zoom = -0.002
     bounds = bounds:extrude(zoom, zoom * CONFIG.UI.ASPECT_RATIO):offset(-0.025, 0.01)
     render_context:draw_screen_texture(player_texture, 9, 14, bounds, Color:new(1, 1, 1, 1), -0.2, 0, 0)
+
+    for jdx = 1, CONFIG.POUCH.MAX_CAPACITY do
+      local metadata = player.user_data.pouch.slots[jdx]
+      if metadata == nil then
+        break
+      end
+      zoom = 0.015
+      bounds.left = CONFIG.UI.BACKGROUND.BASE_X + CONFIG.UI.POUCH.PLAYER_STRIDE * (idx - 1) + CONFIG.UI.BACKGROUND.SLOTS[jdx].X
+      bounds.right = bounds.left + CONFIG.UI.SLOT.WIDTH
+      bounds.bottom = CONFIG.UI.BACKGROUND.BASE_Y + CONFIG.UI.BACKGROUND.SLOTS[jdx].Y
+      bounds.top = bounds.bottom + CONFIG.UI.SLOT.HEIGHT
+      bounds = bounds:extrude(zoom, zoom * CONFIG.UI.ASPECT_RATIO)
+
+      local texture = metadata.texture
+      local texture_definition = get_texture_definition(texture)
+      local columns = texture_definition.width / texture_definition.tile_width
+      local rows = texture_definition.height / texture_definition.tile_height
+      local sprite_row = math.floor(metadata.animation_frame // rows)
+      local sprite_column = math.floor(metadata.animation_frame % columns)
+      render_context:draw_screen_texture(texture, sprite_row, sprite_column, bounds, Color:new(1, 1, 1, 1))
+    end
   end
 end
 

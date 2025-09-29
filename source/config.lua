@@ -1,4 +1,8 @@
--- TODO: Crop textures to content and take their aspect ratio into account
+--[[
+TODO:
+  - crop textures to content and take their aspect ratio into account
+  - make pouch texture a bit blurred
+]]
 
 ---@class PouchConfig
 ---@field MIN_CAPACITY integer Minimum number of slots allowed in pouch
@@ -127,6 +131,15 @@ local UI_BACKGROUND_CONFIG<const> = {
   BASE_X = UI_POUCH_CONFIG.BASE_X + 0.005,
   BASE_Y = UI_POUCH_CONFIG.BASE_Y - 0.18,
   WIDTH = 0.233,
+  SLOTS = {
+    { X = 0.025, Y = 0.32 },
+    { X = 0.075, Y = 0.235 },
+    { X = 0.075, Y = 0.32 },
+    { X = 0.125, Y = 0.235 },
+    { X = 0.125, Y = 0.32 },
+    { X = 0.175, Y = 0.235 },
+    { X = 0.175, Y = 0.315 },
+  },
 }
 do
   local TEXTURE_SIZE = 313
