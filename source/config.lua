@@ -1,3 +1,5 @@
+-- TODO: Crop textures to content and take their aspect ratio into account
+
 ---@class PouchConfig
 ---@field MIN_CAPACITY integer Minimum number of slots allowed in pouch
 ---@field MAX_CAPACITY integer Maximum number of slots allowed in pouch
@@ -50,6 +52,9 @@ local AUDIO_CONFIG<const> = {
 local ASPECT_RATIO<const> = 16 / 9
 
 ---@class UiSlotConfig
+---@field BASE_X number Screen-space X coordinate for first slot of first player
+---@field BASE_Y number Screen-space Y coordinate for pouch UI elements
+---@field PLAYER_STRIDE number Screen-space horizontal offset between different players' pouches
 ---@field WIDTH number Screen-space width of each pouch slot
 ---@field HEIGHT number Screen-space height of each pouch slot (calculated from width and aspect ratio)
 ---@field MARGIN number Screen-space margin between adjacent slots
@@ -59,40 +64,107 @@ local ASPECT_RATIO<const> = 16 / 9
 ---@field ICON_ZOOM_Y TEXTURE Zoom factor used to calculated icon sized relative to background size (y-axis)
 ---@field TEXTURE TEXTURE Texture used for rendering empty slot backgrounds
 local UI_SLOT_CONFIG<const> = {
+  BASE_X = -0.9625,
+  BASE_Y = 0.67,
+  PLAYER_STRIDE = 0.32,
   WIDTH = 0.035,
   MARGIN = 0.0035,
   BACKGROUND_ALPHA = 0.35,
   ICON_ALPHA = 0.5,
   ICON_ZOOM_X = 0.008
 }
-UI_SLOT_CONFIG.HEIGHT = UI_SLOT_CONFIG.WIDTH * ASPECT_RATIO
-UI_SLOT_CONFIG.ICON_ZOOM_Y = UI_SLOT_CONFIG.ICON_ZOOM_X * ASPECT_RATIO
 do
-  local TEXTURE_WIDHT = 28
-  local TEXTURE_HEIGHT = 28
+  -- actual size is 23 but having this be larger makes the texture
+  -- look rounder for some reason (maybe I'm imagining it)
+  local TEXTURE_SIZE = 100
 
   local texture_def = TextureDefinition.new()
   texture_def.texture_path = 'slot.png'
-  texture_def.width = TEXTURE_WIDHT
-  texture_def.height = TEXTURE_HEIGHT
-  texture_def.tile_width = TEXTURE_WIDHT
-  texture_def.tile_height = TEXTURE_HEIGHT
+  texture_def.width = TEXTURE_SIZE
+  texture_def.height = TEXTURE_SIZE
+  texture_def.tile_width = TEXTURE_SIZE
+  texture_def.tile_height = TEXTURE_SIZE
 
+  UI_SLOT_CONFIG.HEIGHT = UI_SLOT_CONFIG.WIDTH * ASPECT_RATIO
+  UI_SLOT_CONFIG.ICON_ZOOM_Y = UI_SLOT_CONFIG.ICON_ZOOM_X * ASPECT_RATIO
   UI_SLOT_CONFIG.TEXTURE = define_texture(texture_def)
+end
+
+---@class UiPouchDisplay
+---@field ROPE integer Display a rope
+---@field HANGING_1 integer Display player hanging with legs down
+---@field HANGING_2 integer Display player hanging with legs to the side
+local UI_POUCH_DISPLAY<const> = {
+  ROPE = 0,
+  HANGING_1 = 1,
+  HANGING_2 = 2,
+}
+
+---@class UiPouchConfig
+---@field BASE_X number Screen-space X coordinate for pouch of first player
+---@field BASE_Y number Screen-space Y coordinate for pouch of first player
+---@field PLAYER_STRIDE number Screen-space horizontal offset between different players' pouches
+---@field WIDTH number Screen-space width of each pouch
+---@field HEIGHT number Screen-space height of each pouch (calculated from width and aspect ratio)
+---@field TEXTURE TEXTURE Texture used for rendering empty slot backgrounds
+---@field DISPLAY UiPouchDisplay How the pouch will be displayed
+local UI_POUCH_CONFIG<const> = {
+  BASE_X = -0.89,
+  BASE_Y = -0.98,
+  PLAYER_STRIDE = 0.32,
+  WIDTH = 0.07,
+  DISPLAY = UI_POUCH_DISPLAY
+}
+do
+  local TEXTURE_SIZE = 256
+
+  local texture_def = TextureDefinition.new()
+  texture_def.texture_path = 'pouch.png'
+  texture_def.width = TEXTURE_SIZE
+  texture_def.height = TEXTURE_SIZE
+  texture_def.tile_width = TEXTURE_SIZE
+  texture_def.tile_height = TEXTURE_SIZE
+
+  UI_POUCH_CONFIG.HEIGHT = UI_POUCH_CONFIG.WIDTH * ASPECT_RATIO
+  UI_POUCH_CONFIG.TEXTURE = define_texture(texture_def)
+end
+
+---@class UiBackgroundConfig
+---@field BASE_X number Screen-space X coordinate for background of first player
+---@field BASE_Y number Screen-space Y coordinate for background of first player
+---@field WIDTH number Screen-space width of each pouch
+---@field HEIGHT number Screen-space height of each pouch (calculated from width and aspect ratio)
+---@field TEXTURE TEXTURE Texture used for rendering empty slot backgrounds
+---@field DISPLAY UiPouchDisplay How the pouch will be displayed
+local UI_BACKGROUND_CONFIG<const> = {
+  BASE_X = UI_POUCH_CONFIG.BASE_X + 0.005,
+  BASE_Y = UI_POUCH_CONFIG.BASE_Y - 0.18,
+  WIDTH = 0.233,
+}
+do
+  local TEXTURE_SIZE = 313
+
+  local texture_def = TextureDefinition.new()
+  texture_def.texture_path = 'background.png'
+  texture_def.width = TEXTURE_SIZE
+  texture_def.height = TEXTURE_SIZE
+  texture_def.tile_width = TEXTURE_SIZE
+  texture_def.tile_height = TEXTURE_SIZE
+
+  UI_BACKGROUND_CONFIG.HEIGHT = UI_BACKGROUND_CONFIG.WIDTH * ASPECT_RATIO
+  UI_BACKGROUND_CONFIG.TEXTURE = define_texture(texture_def)
 end
 
 ---@class UiConfig
 ---@field ASPECT_RATIO number Screen aspect ratio used for UI calculations
----@field BASE_X number Screen-space X coordinate for first slot of first player
----@field BASE_Y number Screen-space Y coordinate for pouch UI elements
----@field PLAYER_STRIDE number Screen-space horizontal offset between different players' pouches
 ---@field SLOT UiSlotConfig Configuration specific to individual pouch slots
+---@field POUCH UiPouchConfig Configuration specific to individual pouchs
+---@field BACKGROUND UiBackgroundConfig Configuration specific to individual backgrounds
 local UI_CONFIG<const> = {
   ASPECT_RATIO = ASPECT_RATIO,
-  BASE_X = -0.9625,
-  BASE_Y = 0.67,
-  PLAYER_STRIDE = 0.32,
   SLOT = UI_SLOT_CONFIG,
+  POUCH = UI_POUCH_CONFIG,
+  BACKGROUND = UI_BACKGROUND_CONFIG,
 }
 
 local STORABLE_ALWAYS<const> = {

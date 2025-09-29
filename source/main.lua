@@ -4,6 +4,8 @@ TODO:
   - add a separate display at the bottom of the screen during level trasitions that shows the player head
     (maybe over a pouch) and a canvas background over which the items will be displayed
   - add FIFO (currently only option), LIFO and SELECTABLE options for pouch interactions
+  - fade slots to invisible when menu is opened
+  -- change capacity to starting capacity and add item that expands the capacity to item pools
 ]]
 
 meta = {
@@ -18,7 +20,11 @@ local Pouch = require('pouch')
 
 -- ==============================================================================
 
-local is_enabled  = false
+---@type boolean
+local is_enabled = false
+
+---@type UiPouchDisplay[]
+local pouches_displays = {}
 
 local function enable()
   is_enabled = true
@@ -26,6 +32,13 @@ end
 
 local function disable()
   is_enabled = false
+end
+
+local function on_transition()
+  disable()
+  for idx, _ in ipairs(get_local_players()) do
+    pouches_displays[idx] = prng:random(0, 1000) % 3 --[[@as UiPouchDisplay]]
+  end
 end
 
 ---@param save_context SaveContext
@@ -95,17 +108,13 @@ local function game_update()
 end
 
 ---@param render_context VanillaRenderContext
-local function user_interface(render_context)
-  if not is_enabled then
-    return
-  end
-
+local function user_interface_level(render_context)
   for idx, player in ipairs(get_local_players()) do
     for jdx = 1, options.pouch_size do
       local bounds = AABB:new()
-      bounds.left = CONFIG.UI.BASE_X + (CONFIG.UI.SLOT.WIDTH + CONFIG.UI.SLOT.MARGIN) * (jdx - 1) + CONFIG.UI.PLAYER_STRIDE * (idx - 1)
+      bounds.left = CONFIG.UI.SLOT.BASE_X + (CONFIG.UI.SLOT.WIDTH + CONFIG.UI.SLOT.MARGIN) * (jdx - 1) + CONFIG.UI.SLOT.PLAYER_STRIDE * (idx - 1)
       bounds.right = bounds.left + CONFIG.UI.SLOT.WIDTH
-      bounds.bottom = CONFIG.UI.BASE_Y
+      bounds.bottom = CONFIG.UI.SLOT.BASE_Y
       bounds.top = bounds.bottom + CONFIG.UI.SLOT.HEIGHT
 
       render_context:draw_screen_texture(CONFIG.UI.SLOT.TEXTURE, 0, 0, bounds, Color:new(1, 1, 1, CONFIG.UI.SLOT.BACKGROUND_ALPHA))
@@ -118,11 +127,52 @@ local function user_interface(render_context)
         local rows = texture_definition.height / texture_definition.tile_height
         local sprite_row = math.floor(metadata.animation_frame // rows)
         local sprite_column = math.floor(metadata.animation_frame % columns)
-
         bounds = bounds:extrude(CONFIG.UI.SLOT.ICON_ZOOM_X, CONFIG.UI.SLOT.ICON_ZOOM_Y)
         render_context:draw_screen_texture(texture, sprite_row, sprite_column, bounds, Color:new(1, 1, 1, CONFIG.UI.SLOT.ICON_ALPHA))
       end
     end
+  end
+end
+
+---@param render_context VanillaRenderContext
+local function user_interface_transition(render_context)
+  for idx, player in ipairs(get_local_players()) do
+    local bounds = AABB:new()
+    bounds.left = CONFIG.UI.BACKGROUND.BASE_X + CONFIG.UI.POUCH.PLAYER_STRIDE * (idx - 1)
+    bounds.right = bounds.left + CONFIG.UI.BACKGROUND.WIDTH
+    bounds.bottom = CONFIG.UI.BACKGROUND.BASE_Y
+    bounds.top = bounds.bottom + CONFIG.UI.BACKGROUND.HEIGHT
+    render_context:draw_screen_texture(CONFIG.UI.BACKGROUND.TEXTURE, 0, 0, bounds, Color:new(1, 1, 1, 1))
+
+    bounds.left = CONFIG.UI.POUCH.BASE_X + CONFIG.UI.POUCH.PLAYER_STRIDE * (idx - 1)
+    bounds.right = bounds.left + CONFIG.UI.POUCH.WIDTH
+    bounds.bottom = CONFIG.UI.POUCH.BASE_Y
+    bounds.top = bounds.bottom + CONFIG.UI.POUCH.HEIGHT
+    render_context:draw_screen_texture(CONFIG.UI.POUCH.TEXTURE, 0, 0, bounds, Color:new(1, 1, 1, 1))
+
+    local player_texture = player:get_texture()
+    if pouches_displays[idx] == CONFIG.UI.POUCH.DISPLAY.ROPE then
+      local zoom = -0.002
+      bounds = bounds:extrude(zoom, zoom * CONFIG.UI.ASPECT_RATIO):offset(-0.025, 0.01)
+      render_context:draw_screen_texture(player_texture, 9, 14, bounds, Color:new(1, 1, 1, 1), -0.2, 0, 0)
+    else
+      local zoom = 0.01
+      bounds = bounds:extrude(zoom, zoom * CONFIG.UI.ASPECT_RATIO):offset(-0.045, 0.028)
+      if pouches_displays[idx] == CONFIG.UI.POUCH.DISPLAY.HANGING_1 then
+        render_context:draw_screen_texture(player_texture, 3, 8, bounds, Color:new(1, 1, 1, 1))
+      else
+        render_context:draw_screen_texture(player_texture, 3, 11, bounds, Color:new(1, 1, 1, 1))
+      end
+    end
+  end
+end
+
+---@param render_context VanillaRenderContext
+local function user_interface(render_context)
+  if is_enabled then
+    user_interface_level(render_context)
+  else
+    user_interface_transition(render_context)
   end
 end
 
@@ -170,4 +220,4 @@ set_callback(user_interface, ON.RENDER_POST_HUD)
 set_callback(enable, ON.LEVEL)
 set_callback(disable, ON.MENU)
 set_callback(disable, ON.DEATH)
-set_callback(disable, ON.TRANSITION)
+set_callback(on_transition, ON.TRANSITION)
