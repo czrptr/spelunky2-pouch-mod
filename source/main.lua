@@ -80,13 +80,16 @@ local function game_update()
     ---@cast previous_input INPUTS
 
     if test_flag(current_input, INPUT_FLAG.UP) and was_just_pressed(current_input, previous_input, INPUT_FLAG.DOOR) then
+      -- prevent players from retrieving right as they exit the floor so that they
+      -- don't accidentally lose items that cannot be carried through level trasitions
+      local door_uid = get_entities_overlapping_hitbox(ENT_TYPE.FLOOR_DOOR_EXIT, MASK.ANY, player:get_hitbox(), LAYER.BOTH)[1]
+
       if player.holding_uid ~= -1 then
         player.user_data.pouch:store(player.uid, player.holding_uid)
-      else
+      elseif door_uid == nil then
         player.user_data.pouch:retrieve(player.uid)
       end
     end
-
     player.user_data.previous_input = current_input
   end
 end
