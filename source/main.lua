@@ -1,7 +1,6 @@
 -- POUCH MOD
 --[[
 TODO:
-  - add x-s or dots to the pouch background texture
   - add FIFO (currently only option), LIFO and SELECTABLE options for pouch interactions
   - change capacity to starting capacity and add item that expands the capacity to item pools
 ]]
