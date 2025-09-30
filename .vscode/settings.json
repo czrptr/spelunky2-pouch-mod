@@ -4,4 +4,8 @@
     "${workspaceFolder}/vendor/overlunky/docs/game_data/spel2.lua",
     "${workspaceFolder}/vendor/additions/additions.lua",
   ],
+  "[lua]": {
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "sumneko.lua"
+  }
 }

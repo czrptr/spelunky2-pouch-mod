@@ -1,10 +1,12 @@
 ---@class Metadata
 ---@field type ENT_TYPE
 ---@field flags integer
----@field texture TEXTURE
 ---@field animation_frame integer
 ---@field health integer?
 ---@field is_dead boolean
+---@field texture TEXTURE
+---@field sprite_row integer
+---@field sprite_column integer
 local Metadata = {}
 Metadata.__index = Metadata
 
@@ -12,13 +14,22 @@ Metadata.__index = Metadata
 ---@return Metadata
 function Metadata:from_entity(uid)
   local entity = get_entity(uid)
+  local texture = entity:get_texture()
+  local texture_definition = get_texture_definition(texture)
+  local columns = texture_definition.width / texture_definition.tile_width
+  local rows = texture_definition.height / texture_definition.tile_height
+  local sprite_row = math.floor(entity.animation_frame // rows)
+  local sprite_column = math.floor(entity.animation_frame % columns)
+
   return setmetatable({
     type = entity.type.id,
     flags = get_entity(uid):get_metadata(),
-    texture = entity:get_texture(),
     animation_frame = entity.animation_frame,
     health = (entity --[[@as Movable]]).health,
     is_dead = test_flag(entity.flags, ENT_FLAG.DEAD),
+    texture = texture,
+    sprite_row = sprite_row,
+    sprite_column = sprite_column,
   }, Metadata)
 end
 

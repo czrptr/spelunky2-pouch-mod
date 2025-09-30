@@ -2,7 +2,7 @@
 ---@field MIN_CAPACITY integer Minimum number of slots allowed in pouch
 ---@field MAX_CAPACITY integer Maximum number of slots allowed in pouch
 ---@field DEFAULT_CAPACITY integer Default number of slots in pouch
-local POUCH_CONFIG<const> = {
+local POUCH_CONFIG <const> = {
   MIN_CAPACITY = 1,
   MAX_CAPACITY = 7,
   DEFAULT_CAPACITY = 2,
@@ -18,17 +18,17 @@ local POUCH_CONFIG<const> = {
 ---@class AudioConfig
 ---@field STORE AudioSoundConfig Configuration for item storage sound effects
 ---@field INVALID AudioSoundConfig Configuration for invalid action sound effects
-local AUDIO_CONFIG<const> = (function ()
-  local SOUND_STORE<const> = get_sound(VANILLA_SOUND.MOUNTS_MOUNT)
+local AUDIO_CONFIG <const> = (function()
+  local SOUND_STORE <const> = get_sound(VANILLA_SOUND.MOUNTS_MOUNT)
   ---@cast SOUND_STORE CustomSound -- will never be nil
-  local SOUND_INVALID<const> = get_sound(VANILLA_SOUND.SHOP_SHOP_NOPE)
+  local SOUND_INVALID <const> = get_sound(VANILLA_SOUND.SHOP_SHOP_NOPE)
   ---@cast SOUND_INVALID CustomSound -- will never be nil
 
   return {
     STORE = {
-    SOUND = SOUND_STORE,
-    PITCH = 1.1,
-    VOLUME = 1.2,
+      SOUND = SOUND_STORE,
+      PITCH = 1.1,
+      VOLUME = 1.2,
     },
     INVALID = {
       SOUND = SOUND_INVALID,
@@ -41,7 +41,7 @@ end)()
 -- ==============================================================================
 
 -- forced by the engine
-local ASPECT_RATIO<const> = 16 / 9
+local ASPECT_RATIO <const> = 16 / 9
 
 ---@param texture_path string Path to texture file
 ---@param width integer Texture width in pixels
@@ -77,7 +77,7 @@ end
 ---@field ICON_ZOOM_X number Zoom factor for icon size relative to background (x-axis)
 ---@field ICON_ZOOM_Y number Zoom factor for icon size relative to background (y-axis)
 ---@field TEXTURE TEXTURE Texture used for rendering empty slot backgrounds
-local UI_SLOT_CONFIG<const> = (function()
+local UI_SLOT_CONFIG <const> = (function()
   local TEXTURE_WIDTH = 100
   local TEXTURE_HEIGHT = 100
   local TEXTURE_ASPECT_RATIO = TEXTURE_WIDTH / TEXTURE_HEIGHT
@@ -106,7 +106,7 @@ end)()
 ---@field WIDTH number Screen-space width of each pouch
 ---@field HEIGHT number Screen-space height of each pouch
 ---@field TEXTURE TEXTURE Texture used for rendering pouch
-local UI_POUCH_CONFIG<const> = (function()
+local UI_POUCH_CONFIG <const> = (function()
   local TEXTURE_WIDTH = 251
   local TEXTURE_HEIGHT = 233
   local TEXTURE_ASPECT_RATIO = TEXTURE_WIDTH / TEXTURE_HEIGHT
@@ -133,7 +133,7 @@ end)()
 ---@field HEIGHT number Screen-space height of background
 ---@field TEXTURE TEXTURE Texture used for rendering background
 ---@field SLOT_POSITIONS UiSlotPosition[] Relative positions of slots within background
-local UI_BACKGROUND_CONFIG<const> = (function()
+local UI_BACKGROUND_CONFIG <const> = (function()
   local TEXTURE_WIDTH = 313
   local TEXTURE_HEIGHT = 157
   local TEXTURE_ASPECT_RATIO = TEXTURE_WIDTH / TEXTURE_HEIGHT
@@ -163,7 +163,7 @@ end)()
 ---@field SLOT UiSlotConfig Configuration for individual pouch slots
 ---@field POUCH UiPouchConfig Configuration for pouch container
 ---@field BACKGROUND UiBackgroundConfig Configuration for background display
-local UI_CONFIG<const> = {
+local UI_CONFIG <const> = {
   ASPECT_RATIO = ASPECT_RATIO,
   SLOT = UI_SLOT_CONFIG,
   POUCH = UI_POUCH_CONFIG,
@@ -176,7 +176,7 @@ local UI_CONFIG<const> = {
 
 ---Items that can always be stored in the pouch
 ---@type StorableEntityMap
-local STORABLE_ALWAYS<const> = {
+local STORABLE_ALWAYS <const> = {
   -- Weapons
   [ENT_TYPE.ITEM_WEBGUN] = true,
   [ENT_TYPE.ITEM_SHOTGUN] = true,
@@ -253,7 +253,7 @@ local STORABLE_ALWAYS<const> = {
 
 ---Idols that can be stored (based on settings)
 ---@type StorableEntityMap
-local STORABLE_IDOLS<const> = {
+local STORABLE_IDOLS <const> = {
   [ENT_TYPE.ITEM_IDOL] = true,
   [ENT_TYPE.ITEM_MADAMETUSK_IDOL] = true,
   [ENT_TYPE.ITEM_MADAMETUSK_IDOLNOTE] = true,
@@ -262,7 +262,7 @@ local STORABLE_IDOLS<const> = {
 
 ---Pets that can be stored (based on settings)
 ---@type StorableEntityMap
-local STORABLE_PETS<const> = {
+local STORABLE_PETS <const> = {
   [ENT_TYPE.MONS_PET_DOG] = true,
   [ENT_TYPE.MONS_PET_CAT] = true,
   [ENT_TYPE.MONS_PET_HAMSTER] = true,
@@ -270,7 +270,7 @@ local STORABLE_PETS<const> = {
 
 ---Mounts that can be stored (based on settings)
 ---@type StorableEntityMap
-local STORABLE_MOUNTS<const> = {
+local STORABLE_MOUNTS <const> = {
   [ENT_TYPE.MOUNT_TURKEY] = true,
   [ENT_TYPE.MOUNT_ROCKDOG] = true,
   [ENT_TYPE.MOUNT_AXOLOTL] = true,
@@ -282,7 +282,7 @@ local STORABLE_MOUNTS<const> = {
 ---@field IDOLS StorableEntityMap Idols that can be stored
 ---@field PETS StorableEntityMap Pets that can be stored
 ---@field MOUNTS StorableEntityMap Mounts that can be stored
-local STORABLE_CONFIG<const> = {
+local STORABLE_CONFIG <const> = {
   ALWAYS = STORABLE_ALWAYS,
   IDOLS = STORABLE_IDOLS,
   PETS = STORABLE_PETS,
@@ -296,7 +296,7 @@ local STORABLE_CONFIG<const> = {
 ---@field AUDIO AudioConfig Sound effect configurations
 ---@field UI UiConfig User interface layout and rendering settings
 ---@field STORABLE StorableConfig Entity types that can be stored in pouch
-local CONFIG<const> = {
+local CONFIG <const> = {
   POUCH = POUCH_CONFIG,
   AUDIO = AUDIO_CONFIG,
   UI = UI_CONFIG,

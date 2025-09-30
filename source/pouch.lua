@@ -41,7 +41,6 @@ end
 local Pouch = {}
 Pouch.__index = Pouch
 
----comment
 ---@return Pouch
 function Pouch:init()
   return setmetatable({
