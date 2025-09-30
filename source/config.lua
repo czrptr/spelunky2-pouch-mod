@@ -1,9 +1,3 @@
---[[
-TODO:
-  - crop textures to content and take their aspect ratio into account
-  - make pouch texture a bit blurred
-]]
-
 ---@class PouchConfig
 ---@field MIN_CAPACITY integer Minimum number of slots allowed in pouch
 ---@field MAX_CAPACITY integer Maximum number of slots allowed in pouch
@@ -14,152 +8,161 @@ local POUCH_CONFIG<const> = {
   DEFAULT_CAPACITY = 2,
 }
 
-local SOUND_STORE<const> = get_sound(VANILLA_SOUND.MOUNTS_MOUNT)
----@cast SOUND_STORE CustomSound -- will never be nil
-local SOUND_INVALID<const> = get_sound(VANILLA_SOUND.SHOP_SHOP_NOPE)
----@cast SOUND_INVALID CustomSound -- will never be nil
+-- ==============================================================================
 
 ---@class AudioSoundConfig
 ---@field SOUND CustomSound Sound effect
 ---@field PITCH number Pitch multiplier
 ---@field VOLUME number Volume level
 
----@class AudioStoreConfig : AudioSoundConfig
----@field SOUND CustomSound Sound effect
----@field PITCH number Pitch multiplier
----@field VOLUME number Volume level
-local AUDIO_STORE_CONFIG<const> = {
-  SOUND = SOUND_STORE,
-  PITCH = 1.1,
-  VOLUME = 1.2,
-}
-
----@class AudioInvalidConfig : AudioSoundConfig
----@field SOUND CustomSound Sound effect
----@field PITCH number Pitch multiplier
----@field VOLUME number Volume level
-local AUDIO_INVALID_CONFIG<const> = {
-  SOUND = SOUND_INVALID,
-  PITCH = 1.3,
-  VOLUME = 0.775,
-}
-
 ---@class AudioConfig
----@field STORE AudioStoreConfig Configuration for item storage sound effects
----@field INVALID AudioInvalidConfig Configuration for invalid action sound effects
-local AUDIO_CONFIG<const> = {
-  STORE = AUDIO_STORE_CONFIG,
-  INVALID = AUDIO_INVALID_CONFIG
-}
+---@field STORE AudioSoundConfig Configuration for item storage sound effects
+---@field INVALID AudioSoundConfig Configuration for invalid action sound effects
+local AUDIO_CONFIG<const> = (function ()
+  local SOUND_STORE<const> = get_sound(VANILLA_SOUND.MOUNTS_MOUNT)
+  ---@cast SOUND_STORE CustomSound -- will never be nil
+  local SOUND_INVALID<const> = get_sound(VANILLA_SOUND.SHOP_SHOP_NOPE)
+  ---@cast SOUND_INVALID CustomSound -- will never be nil
+
+  return {
+    STORE = {
+    SOUND = SOUND_STORE,
+    PITCH = 1.1,
+    VOLUME = 1.2,
+    },
+    INVALID = {
+      SOUND = SOUND_INVALID,
+      PITCH = 1.3,
+      VOLUME = 0.775,
+    }
+  }
+end)()
+
+-- ==============================================================================
 
 -- forced by the engine
 local ASPECT_RATIO<const> = 16 / 9
 
+---@param texture_path string Path to texture file
+---@param width integer Texture width in pixels
+---@param height integer Texture height in pixels
+---@return TEXTURE
+local function create_texture(texture_path, width, height)
+  local texture_def = TextureDefinition.new()
+  texture_def.texture_path = texture_path
+  texture_def.width = width
+  texture_def.height = height
+  texture_def.tile_width = width
+  texture_def.tile_height = height
+  return define_texture(texture_def)
+end
+
+---@param width number Screen-space width
+---@param texture_aspect_ratio number Width/height ratio of texture
+---@return number height Screen-space height
+local function screen_height(width, texture_aspect_ratio)
+  return width / texture_aspect_ratio * ASPECT_RATIO
+end
+
+-- Slot Configuration
 ---@class UiSlotConfig
 ---@field BASE_X number Screen-space X coordinate for first slot of first player
 ---@field BASE_Y number Screen-space Y coordinate for pouch UI elements
 ---@field PLAYER_STRIDE number Screen-space horizontal offset between different players' pouches
 ---@field WIDTH number Screen-space width of each pouch slot
----@field HEIGHT number Screen-space height of each pouch slot (calculated from width and aspect ratio)
+---@field HEIGHT number Screen-space height of each pouch slot
 ---@field MARGIN number Screen-space margin between adjacent slots
 ---@field BACKGROUND_ALPHA number Transparency level for slot background rendering
 ---@field ICON_ALPHA number Transparency level for slot icon rendering
----@field ICON_ZOOM_X TEXTURE Zoom factor used to calculated icon sized relative to background size (x-axis)
----@field ICON_ZOOM_Y TEXTURE Zoom factor used to calculated icon sized relative to background size (y-axis)
+---@field ICON_ZOOM_X number Zoom factor for icon size relative to background (x-axis)
+---@field ICON_ZOOM_Y number Zoom factor for icon size relative to background (y-axis)
 ---@field TEXTURE TEXTURE Texture used for rendering empty slot backgrounds
-local UI_SLOT_CONFIG<const> = {
-  BASE_X = -0.9625,
-  BASE_Y = 0.67,
-  PLAYER_STRIDE = 0.32,
-  WIDTH = 0.035,
-  MARGIN = 0.0035,
-  BACKGROUND_ALPHA = 0.35,
-  ICON_ALPHA = 0.5,
-  ICON_ZOOM_X = 0.008
-}
-do
-  -- actual size is 23 but having this be larger makes the texture
-  -- look rounder for some reason (maybe I'm imagining it)
-  local TEXTURE_SIZE = 100
+local UI_SLOT_CONFIG<const> = (function()
+  local TEXTURE_WIDTH = 100
+  local TEXTURE_HEIGHT = 100
+  local TEXTURE_ASPECT_RATIO = TEXTURE_WIDTH / TEXTURE_HEIGHT
+  local WIDTH = 0.035
+  local ICON_ZOOM_X = 0.008
 
-  local texture_def = TextureDefinition.new()
-  texture_def.texture_path = 'slot.png'
-  texture_def.width = TEXTURE_SIZE
-  texture_def.height = TEXTURE_SIZE
-  texture_def.tile_width = TEXTURE_SIZE
-  texture_def.tile_height = TEXTURE_SIZE
-
-  UI_SLOT_CONFIG.HEIGHT = UI_SLOT_CONFIG.WIDTH * ASPECT_RATIO
-  UI_SLOT_CONFIG.ICON_ZOOM_Y = UI_SLOT_CONFIG.ICON_ZOOM_X * ASPECT_RATIO
-  UI_SLOT_CONFIG.TEXTURE = define_texture(texture_def)
-end
+  return {
+    BASE_X = -0.9625,
+    BASE_Y = 0.67,
+    PLAYER_STRIDE = 0.32,
+    WIDTH = WIDTH,
+    HEIGHT = screen_height(WIDTH, TEXTURE_ASPECT_RATIO),
+    MARGIN = 0.0035,
+    BACKGROUND_ALPHA = 0.35,
+    ICON_ALPHA = 0.5,
+    ICON_ZOOM_X = ICON_ZOOM_X,
+    ICON_ZOOM_Y = ICON_ZOOM_X * ASPECT_RATIO,
+    TEXTURE = create_texture('slot.png', TEXTURE_WIDTH, TEXTURE_HEIGHT),
+  }
+end)()
 
 ---@class UiPouchConfig
 ---@field BASE_X number Screen-space X coordinate for pouch of first player
 ---@field BASE_Y number Screen-space Y coordinate for pouch of first player
 ---@field PLAYER_STRIDE number Screen-space horizontal offset between different players' pouches
 ---@field WIDTH number Screen-space width of each pouch
----@field HEIGHT number Screen-space height of each pouch (calculated from width and aspect ratio)
----@field TEXTURE TEXTURE Texture used for rendering empty slot backgrounds
-local UI_POUCH_CONFIG<const> = {
-  BASE_X = -0.89,
-  BASE_Y = -0.98,
-  PLAYER_STRIDE = 0.32,
-  WIDTH = 0.07,
-}
-do
-  local TEXTURE_SIZE = 256
+---@field HEIGHT number Screen-space height of each pouch
+---@field TEXTURE TEXTURE Texture used for rendering pouch
+local UI_POUCH_CONFIG<const> = (function()
+  local TEXTURE_WIDTH = 251
+  local TEXTURE_HEIGHT = 233
+  local TEXTURE_ASPECT_RATIO = TEXTURE_WIDTH / TEXTURE_HEIGHT
+  local WIDTH = 0.07
 
-  local texture_def = TextureDefinition.new()
-  texture_def.texture_path = 'pouch.png'
-  texture_def.width = TEXTURE_SIZE
-  texture_def.height = TEXTURE_SIZE
-  texture_def.tile_width = TEXTURE_SIZE
-  texture_def.tile_height = TEXTURE_SIZE
+  return {
+    BASE_X = -0.89,
+    BASE_Y = -0.98,
+    PLAYER_STRIDE = 0.32,
+    WIDTH = WIDTH,
+    HEIGHT = screen_height(WIDTH, TEXTURE_ASPECT_RATIO),
+    TEXTURE = create_texture('pouch.png', TEXTURE_WIDTH, TEXTURE_HEIGHT),
+  }
+end)()
 
-  UI_POUCH_CONFIG.HEIGHT = UI_POUCH_CONFIG.WIDTH * ASPECT_RATIO
-  UI_POUCH_CONFIG.TEXTURE = define_texture(texture_def)
-end
+---@class UiSlotPosition
+---@field X number Relative X position
+---@field Y number Relative Y position
 
 ---@class UiBackgroundConfig
 ---@field BASE_X number Screen-space X coordinate for background of first player
 ---@field BASE_Y number Screen-space Y coordinate for background of first player
----@field WIDTH number Screen-space width of each pouch
----@field HEIGHT number Screen-space height of each pouch (calculated from width and aspect ratio)
----@field TEXTURE TEXTURE Texture used for rendering empty slot backgrounds
-local UI_BACKGROUND_CONFIG<const> = {
-  BASE_X = UI_POUCH_CONFIG.BASE_X + 0.005,
-  BASE_Y = UI_POUCH_CONFIG.BASE_Y - 0.18,
-  WIDTH = 0.233,
-  SLOTS = {
-    { X = 0.025, Y = 0.32 },
-    { X = 0.075, Y = 0.235 },
-    { X = 0.075, Y = 0.32 },
-    { X = 0.125, Y = 0.235 },
-    { X = 0.125, Y = 0.32 },
-    { X = 0.175, Y = 0.235 },
-    { X = 0.175, Y = 0.315 },
-  },
-}
-do
-  local TEXTURE_SIZE = 313
+---@field WIDTH number Screen-space width of background
+---@field HEIGHT number Screen-space height of background
+---@field TEXTURE TEXTURE Texture used for rendering background
+---@field SLOT_POSITIONS UiSlotPosition[] Relative positions of slots within background
+local UI_BACKGROUND_CONFIG<const> = (function()
+  local TEXTURE_WIDTH = 313
+  local TEXTURE_HEIGHT = 157
+  local TEXTURE_ASPECT_RATIO = TEXTURE_WIDTH / TEXTURE_HEIGHT
 
-  local texture_def = TextureDefinition.new()
-  texture_def.texture_path = 'background.png'
-  texture_def.width = TEXTURE_SIZE
-  texture_def.height = TEXTURE_SIZE
-  texture_def.tile_width = TEXTURE_SIZE
-  texture_def.tile_height = TEXTURE_SIZE
+  local WIDTH = 0.233
 
-  UI_BACKGROUND_CONFIG.HEIGHT = UI_BACKGROUND_CONFIG.WIDTH * ASPECT_RATIO
-  UI_BACKGROUND_CONFIG.TEXTURE = define_texture(texture_def)
-end
+  return {
+    BASE_X = UI_POUCH_CONFIG.BASE_X + 0.005,
+    BASE_Y = UI_POUCH_CONFIG.BASE_Y + 0.02,
+    WIDTH = WIDTH,
+    HEIGHT = screen_height(WIDTH, TEXTURE_ASPECT_RATIO),
+    TEXTURE = create_texture('background.png', TEXTURE_WIDTH, TEXTURE_HEIGHT),
+    SLOT_POSITIONS = {
+      { X = 0.025, Y = 0.113 },
+      { X = 0.075, Y = 0.028 },
+      { X = 0.075, Y = 0.113 },
+      { X = 0.125, Y = 0.028 },
+      { X = 0.125, Y = 0.113 },
+      { X = 0.175, Y = 0.028 },
+      { X = 0.175, Y = 0.113 },
+    },
+  }
+end)()
 
 ---@class UiConfig
 ---@field ASPECT_RATIO number Screen aspect ratio used for UI calculations
----@field SLOT UiSlotConfig Configuration specific to individual pouch slots
----@field POUCH UiPouchConfig Configuration specific to individual pouchs
----@field BACKGROUND UiBackgroundConfig Configuration specific to individual backgrounds
+---@field SLOT UiSlotConfig Configuration for individual pouch slots
+---@field POUCH UiPouchConfig Configuration for pouch container
+---@field BACKGROUND UiBackgroundConfig Configuration for background display
 local UI_CONFIG<const> = {
   ASPECT_RATIO = ASPECT_RATIO,
   SLOT = UI_SLOT_CONFIG,
@@ -167,42 +170,56 @@ local UI_CONFIG<const> = {
   BACKGROUND = UI_BACKGROUND_CONFIG,
 }
 
+-- ==============================================================================
+
+---@alias StorableEntityMap table<ENT_TYPE, boolean>
+
+---Items that can always be stored in the pouch
+---@type StorableEntityMap
 local STORABLE_ALWAYS<const> = {
-  [ENT_TYPE.ITEM_ROCK] = true,
-  [ENT_TYPE.ITEM_SKULL] = true,
-  [ENT_TYPE.ITEM_DIE] = true,
-  [ENT_TYPE.ITEM_TELEPORTER] = true,
+  -- Weapons
   [ENT_TYPE.ITEM_WEBGUN] = true,
   [ENT_TYPE.ITEM_SHOTGUN] = true,
   [ENT_TYPE.ITEM_FREEZERAY] = true,
   [ENT_TYPE.ITEM_PLASMACANNON] = true,
-  [ENT_TYPE.ITEM_WOODEN_SHIELD] = true,
+  [ENT_TYPE.ITEM_CLONEGUN] = true,
+  [ENT_TYPE.ITEM_CROSSBOW] = true,
+  [ENT_TYPE.ITEM_CAMERA] = true,
+  [ENT_TYPE.ITEM_TELEPORTER] = true,
+  [ENT_TYPE.ITEM_HOUYIBOW] = true,
+
+  -- Melee weapons
   [ENT_TYPE.ITEM_MATTOCK] = true,
   [ENT_TYPE.ITEM_BROKEN_MATTOCK] = true,
-  [ENT_TYPE.ITEM_CLONEGUN] = true,
-  [ENT_TYPE.ITEM_METAL_SHIELD] = true,
   [ENT_TYPE.ITEM_MACHETE] = true,
   [ENT_TYPE.ITEM_BOOMERANG] = true,
-  [ENT_TYPE.ITEM_CAMERA] = true,
-  [ENT_TYPE.ITEM_HOUYIBOW] = true,
-  [ENT_TYPE.ITEM_CROSSBOW] = true,
   [ENT_TYPE.ITEM_SCEPTER] = true,
   [ENT_TYPE.ITEM_EXCALIBUR] = true,
   [ENT_TYPE.ITEM_BROKENEXCALIBUR] = true,
+
+  -- Shields
+  [ENT_TYPE.ITEM_WOODEN_SHIELD] = true,
+  [ENT_TYPE.ITEM_METAL_SHIELD] = true,
+
+  -- Backpacks
   [ENT_TYPE.ITEM_CAPE] = true,
   [ENT_TYPE.ITEM_VLADS_CAPE] = true,
   [ENT_TYPE.ITEM_JETPACK] = true,
   [ENT_TYPE.ITEM_HOVERPACK] = true,
   [ENT_TYPE.ITEM_TELEPORTER_BACKPACK] = true,
   [ENT_TYPE.ITEM_POWERPACK] = true,
-  [ENT_TYPE.ITEM_TORCH] = true,
+
+  -- Projectiles
   [ENT_TYPE.ITEM_WOODEN_ARROW] = true,
   [ENT_TYPE.ITEM_BROKEN_ARROW] = true,
   [ENT_TYPE.ITEM_LIGHT_ARROW] = true,
   [ENT_TYPE.ITEM_METAL_ARROW] = true,
+
+  -- Keys
   [ENT_TYPE.ITEM_KEY] = true,
   [ENT_TYPE.ITEM_LOCKEDCHEST_KEY] = true,
-  [ENT_TYPE.ITEM_EGGPLANT] = true,
+
+  -- Containers
   [ENT_TYPE.ITEM_CRATE] = true,
   [ENT_TYPE.ITEM_CHEST] = true,
   [ENT_TYPE.ITEM_LOCKEDCHEST] = true,
@@ -211,8 +228,16 @@ local STORABLE_ALWAYS<const> = {
   [ENT_TYPE.ITEM_VAULTCHEST] = true,
   [ENT_TYPE.ITEM_LAVAPOT] = true,
   [ENT_TYPE.ITEM_PRESENT] = true,
+
+  -- Miscellaneous items
+  [ENT_TYPE.ITEM_ROCK] = true,
+  [ENT_TYPE.ITEM_SKULL] = true,
+  [ENT_TYPE.ITEM_DIE] = true,
+  [ENT_TYPE.ITEM_TORCH] = true,
+  [ENT_TYPE.ITEM_EGGPLANT] = true,
   [ENT_TYPE.ITEM_CRABMAN_CLAW] = true,
-  -- critters storable as easter egg
+
+  -- Critters (easter egg)
   [ENT_TYPE.MONS_CRITTERSNAIL] = true,
   [ENT_TYPE.MONS_CRITTERDUNGBEETLE] = true,
   [ENT_TYPE.MONS_CRITTERBUTTERFLY] = true,
@@ -223,55 +248,59 @@ local STORABLE_ALWAYS<const> = {
   [ENT_TYPE.MONS_CRITTERFIREFLY] = true,
   [ENT_TYPE.MONS_CRITTERDRONE] = true,
   [ENT_TYPE.MONS_CRITTERSLIME] = true,
-  [ENT_TYPE.MONS_CRITTERANCHOVY] = true
+  [ENT_TYPE.MONS_CRITTERANCHOVY] = true,
 }
----@alias STORABLE_ALWAYS table<ENT_TYPE, boolean>
 
+---Idols that can be stored (based on settings)
+---@type StorableEntityMap
 local STORABLE_IDOLS<const> = {
   [ENT_TYPE.ITEM_IDOL] = true,
   [ENT_TYPE.ITEM_MADAMETUSK_IDOL] = true,
   [ENT_TYPE.ITEM_MADAMETUSK_IDOLNOTE] = true,
   [ENT_TYPE.ITEM_USHABTI] = true,
 }
----@alias STORABLE_IDOLS table<ENT_TYPE, boolean>
 
+---Pets that can be stored (based on settings)
+---@type StorableEntityMap
 local STORABLE_PETS<const> = {
   [ENT_TYPE.MONS_PET_DOG] = true,
   [ENT_TYPE.MONS_PET_CAT] = true,
   [ENT_TYPE.MONS_PET_HAMSTER] = true,
 }
----@alias STORABLE_PETS table<ENT_TYPE, boolean>
 
+---Mounts that can be stored (based on settings)
+---@type StorableEntityMap
 local STORABLE_MOUNTS<const> = {
   [ENT_TYPE.MOUNT_TURKEY] = true,
   [ENT_TYPE.MOUNT_ROCKDOG] = true,
   [ENT_TYPE.MOUNT_AXOLOTL] = true,
   [ENT_TYPE.MOUNT_QILIN] = true,
 }
----@alias STORABLE_MOUNTS table<ENT_TYPE, boolean>
 
----@class Storable
----@field ALWAYS STORABLE_ALWAYS
----@field IDOLS STORABLE_IDOLS
----@field PETS STORABLE_PETS
----@field MOUNTS STORABLE_MOUNTS
-local STORABLE<const> = {
+---@class StorableConfig
+---@field ALWAYS StorableEntityMap Items that can always be stored
+---@field IDOLS StorableEntityMap Idols that can be stored
+---@field PETS StorableEntityMap Pets that can be stored
+---@field MOUNTS StorableEntityMap Mounts that can be stored
+local STORABLE_CONFIG<const> = {
   ALWAYS = STORABLE_ALWAYS,
   IDOLS = STORABLE_IDOLS,
   PETS = STORABLE_PETS,
   MOUNTS = STORABLE_MOUNTS,
 }
 
+-- ==============================================================================
+
 ---@class Config
 ---@field POUCH PouchConfig Pouch capacity and behavior settings
 ---@field AUDIO AudioConfig Sound effect configurations
 ---@field UI UiConfig User interface layout and rendering settings
----@field STORABLE Storable Lookup table used to check if entities are storable
+---@field STORABLE StorableConfig Entity types that can be stored in pouch
 local CONFIG<const> = {
   POUCH = POUCH_CONFIG,
   AUDIO = AUDIO_CONFIG,
   UI = UI_CONFIG,
-  STORABLE = STORABLE,
+  STORABLE = STORABLE_CONFIG,
 }
 
 return CONFIG

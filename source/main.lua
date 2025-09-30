@@ -4,6 +4,7 @@ TODO:
   - add x-s or dots to the pouch background texture
   - add FIFO (currently only option), LIFO and SELECTABLE options for pouch interactions
   - change capacity to starting capacity and add item that expands the capacity to item pools
+  - drop pouch items on death
 ]]
 
 meta = {
@@ -149,9 +150,9 @@ local function user_interface_transition(render_context)
         break
       end
       zoom = 0.015
-      bounds.left = CONFIG.UI.BACKGROUND.BASE_X + CONFIG.UI.POUCH.PLAYER_STRIDE * (idx - 1) + CONFIG.UI.BACKGROUND.SLOTS[jdx].X
+      bounds.left = CONFIG.UI.BACKGROUND.BASE_X + CONFIG.UI.POUCH.PLAYER_STRIDE * (idx - 1) + CONFIG.UI.BACKGROUND.SLOT_POSITIONS[jdx].X
       bounds.right = bounds.left + CONFIG.UI.SLOT.WIDTH
-      bounds.bottom = CONFIG.UI.BACKGROUND.BASE_Y + CONFIG.UI.BACKGROUND.SLOTS[jdx].Y
+      bounds.bottom = CONFIG.UI.BACKGROUND.BASE_Y + CONFIG.UI.BACKGROUND.SLOT_POSITIONS[jdx].Y
       bounds.top = bounds.bottom + CONFIG.UI.SLOT.HEIGHT
       bounds = bounds:extrude(zoom, zoom * CONFIG.UI.ASPECT_RATIO)
 
