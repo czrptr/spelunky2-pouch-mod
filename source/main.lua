@@ -55,7 +55,7 @@ end
 ---@return boolean
 local function on_kill(self, _, resposible)
   self.user_data.pouch:spill(self.uid)
-  return true
+  return false
 end
 
 ---@class UserData
