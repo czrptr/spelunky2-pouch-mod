@@ -24,3 +24,6 @@ function TextureDefinition.new() end
 ---@param particle_emitter_id PARTICLEEMITTER
 ---@param uid integer
 function generate_particles(particle_emitter_id, uid) end
+
+---@type PauseAPI
+pause = nil

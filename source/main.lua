@@ -3,8 +3,7 @@
 TODO:
   - add x-s or dots to the pouch background texture
   - add FIFO (currently only option), LIFO and SELECTABLE options for pouch interactions
-  - fade slots to invisible when menu is opened
-  -- change capacity to starting capacity and add item that expands the capacity to item pools
+  - change capacity to starting capacity and add item that expands the capacity to item pools
 ]]
 
 meta = {
@@ -169,7 +168,7 @@ end
 
 ---@param render_context VanillaRenderContext
 local function user_interface(render_context)
-  if is_enabled then
+  if is_enabled and pause:get_pause() == PAUSE_TYPE.NONE then
     user_interface_level(render_context)
   else
     user_interface_transition(render_context)
