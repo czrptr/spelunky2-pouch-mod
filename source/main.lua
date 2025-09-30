@@ -184,10 +184,10 @@ end
 
 ---@param render_context VanillaRenderContext
 local function user_interface(render_context)
-  if is_enabled and pause:get_pause() == PAUSE_TYPE.NONE then
-    user_interface_level(render_context)
-  else
+  if not is_enabled then
     user_interface_transition(render_context)
+  elseif pause:get_pause() == PAUSE_TYPE.NONE then
+    user_interface_level(render_context)
   end
 end
 
