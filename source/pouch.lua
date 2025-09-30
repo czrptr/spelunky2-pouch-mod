@@ -85,4 +85,13 @@ function Pouch:retrieve(player_uid)
   -- sound effect played by pickup
 end
 
+---@param player_uid integer
+function Pouch:spill(player_uid)
+  local direction = 0.1
+  while #self.slots > 0 do
+    table.remove(self.slots, 1):spawn_at(player_uid, direction, 0.1)
+    direction = direction * -1
+  end
+end
+
 return Pouch

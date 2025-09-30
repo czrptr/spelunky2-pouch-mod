@@ -4,7 +4,6 @@ TODO:
   - add x-s or dots to the pouch background texture
   - add FIFO (currently only option), LIFO and SELECTABLE options for pouch interactions
   - change capacity to starting capacity and add item that expands the capacity to item pools
-  - drop pouch items on death
 ]]
 
 meta = {
@@ -51,6 +50,15 @@ local function was_just_pressed(current_input, previous_input, input_flag)
   return test_flag(current_input, input_flag) and not test_flag(previous_input, input_flag)
 end
 
+---@param self Player
+---@param _ boolean
+---@param resposible Entity
+---@return boolean
+local function on_kill(self, _, resposible)
+  self.user_data.pouch:spill(self.uid)
+  return true
+end
+
 ---@class UserData
 ---@field pouch Pouch
 ---@field previous_input INPUTS?
@@ -68,6 +76,13 @@ local function initialize()
 
     player.user_data.pouch = Pouch:init()
     player.user_data.previous_input = nil
+  end
+end
+
+local function refresh()
+  enable()
+  for _, player in ipairs(get_local_players()) do
+    player:set_pre_kill(on_kill)
   end
 end
 
@@ -217,7 +232,7 @@ set_callback(initialize, ON.START)
 set_callback(game_update, ON.GAMEFRAME)
 set_callback(user_interface, ON.RENDER_POST_HUD)
 
-set_callback(enable, ON.LEVEL)
+set_callback(refresh, ON.LEVEL)
 set_callback(disable, ON.MENU)
 set_callback(disable, ON.DEATH)
 set_callback(disable, ON.TRANSITION)
