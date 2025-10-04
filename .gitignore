@@ -1,3 +1,6 @@
+# Project
+!.vscode/*.ps1
+
 # VSCode
 .vscode/*
 !.vscode/settings.json
