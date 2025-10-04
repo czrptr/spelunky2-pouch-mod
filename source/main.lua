@@ -3,6 +3,8 @@
 TODO:
   - add FIFO (currently only option), LIFO and SELECTABLE options for pouch interactions
   - change capacity to starting capacity and add item that expands the capacity to item pools
+  - forbit pouch interactions while climbing
+  - horizontally center the transition cards
 ]]
 
 meta = {

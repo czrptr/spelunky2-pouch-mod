@@ -48,13 +48,7 @@ function Metadata:spawn_at(uid, velocity_x, velocity_y)
     (entity --[[@as Movable]]).health = self.health
   end
   if self.is_dead then
-    if self.type == ENT_TYPE.MONS_MOLE then
-      -- just setting the flags on moles results in a corpse
-      -- that is in digging state which will fall through the ground
-      kill_entity(entity_uid, false)
-    else
-      entity.flags = set_flag(entity.flags, ENT_FLAG.DEAD)
-    end
+    kill_entity(entity_uid, false)
   end
 
   return entity_uid

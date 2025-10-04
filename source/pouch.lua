@@ -78,10 +78,18 @@ function Pouch:retrieve(player_uid)
   local held_uid = table.remove(self.slots, 1):spawn_at(player_uid)
   pick_up(player_uid, held_uid)
 
-  -- create pickup visual effect
-  generate_particles(PARTICLEEMITTER.ITEMDUST, held_uid)
+  -- Immediate drop/re-pickup on next frame
+  -- This is needed because otherwise some entities
+  -- will render behind the player when picked up
+  set_timeout(function()
+    drop(player_uid, held_uid)
+    pick_up(player_uid, held_uid)
 
-  -- sound effect played by pickup
+    -- create pickup visual effect
+    generate_particles(PARTICLEEMITTER.ITEMDUST, held_uid)
+
+    -- sound effect played by pickup
+  end, 1)
 end
 
 ---@param player_uid integer
