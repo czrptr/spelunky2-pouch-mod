@@ -15,6 +15,15 @@ function register_option_int(name, desc, value, min, max) end
 ---@param value boolean
 function register_option_bool(name, desc, value) end
 
+---Add a combobox option that the user can change in the UI. Read the int index of the selection with `options.name`. Separate `opts` with `\0`,
+---with a double `\0\0` at the end. `value` is the default index 1..n.
+---@param name string
+---@param desc string
+---@param opts string
+---@param value integer
+---@return nil
+function register_option_combo(name, desc, opts, value) end
+
 ---@class TextureDefinition
 TextureDefinition = nil
 

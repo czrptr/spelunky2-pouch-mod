@@ -1,7 +1,7 @@
 -- POUCH MOD
 --[[
 TODO:
-  - add LIFO (currently only option), FIFO and SELECTABLE options for pouch interactions
+  - add SELECTABLE option for pouch retrieval (won't be able to rotate on select)
   - change capacity to starting capacity and add item that expands the capacity to item pools
   - horizontally center the transition cards
 ]]
@@ -271,6 +271,14 @@ register_option_bool(
   'Monsters can be stored after they are killed',
   true
 )
+
+register_option_combo(
+  'retrieval_strategy',
+  'Item retrieval',
+  'Last inserted\0\0',
+  1
+)
+
 
 set_callback(save_options, ON.SAVE)
 set_callback(load_options, ON.LOAD)

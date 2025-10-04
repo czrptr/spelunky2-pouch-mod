@@ -6,6 +6,11 @@ local POUCH_CONFIG <const> = {
   MIN_CAPACITY = 1,
   MAX_CAPACITY = 7,
   DEFAULT_CAPACITY = 2,
+
+  STRATEGY = {
+    LAST_INSERTED = 1,
+    SELECTABLE = 2,
+  }
 }
 
 -- ==============================================================================
