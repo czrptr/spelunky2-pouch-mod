@@ -100,7 +100,7 @@ local UI_SLOT_CONFIG <const> = (function()
     ICON_ALPHA = 0.5,
     ICON_ZOOM_X = ICON_ZOOM_X,
     ICON_ZOOM_Y = ICON_ZOOM_X * ASPECT_RATIO,
-    TEXTURE = create_texture('slot.png', TEXTURE_WIDTH, TEXTURE_HEIGHT),
+    TEXTURE = create_texture("slot.png", TEXTURE_WIDTH, TEXTURE_HEIGHT),
   }
 end)()
 
@@ -123,7 +123,7 @@ local UI_POUCH_CONFIG <const> = (function()
     PLAYER_STRIDE = 0.32,
     WIDTH = WIDTH,
     HEIGHT = screen_height(WIDTH, TEXTURE_ASPECT_RATIO),
-    TEXTURE = create_texture('pouch.png', TEXTURE_WIDTH, TEXTURE_HEIGHT),
+    TEXTURE = create_texture("pouch.png", TEXTURE_WIDTH, TEXTURE_HEIGHT),
   }
 end)()
 
@@ -150,7 +150,7 @@ local UI_BACKGROUND_CONFIG <const> = (function()
     BASE_Y = UI_POUCH_CONFIG.BASE_Y + 0.02,
     WIDTH = WIDTH,
     HEIGHT = screen_height(WIDTH, TEXTURE_ASPECT_RATIO),
-    TEXTURE = create_texture('background.png', TEXTURE_WIDTH, TEXTURE_HEIGHT),
+    TEXTURE = create_texture("background.png", TEXTURE_WIDTH, TEXTURE_HEIGHT),
     SLOT_POSITIONS = {
       { X = 0.025, Y = 0.113 },
       { X = 0.075, Y = 0.028 },

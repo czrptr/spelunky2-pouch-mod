@@ -7,14 +7,14 @@ TODO:
 ]]
 
 meta = {
-  name = 'Pouch',
-  version = '1.0',
-  description = 'Store held items and retrieve them later',
-  author = 'Quasar',
+  name = "Pouch",
+  version = "1.0",
+  description = "Store held items and retrieve them later",
+  author = "Quasar",
 }
 
-local CONFIG = require('config')
-local Pouch = require('pouch')
+local CONFIG = require("config")
+local Pouch = require("pouch")
 
 -- ==============================================================================
 
@@ -241,41 +241,41 @@ end
 -- ==============================================================================
 
 register_option_int(
-  'pouch_size',
-  'Pouch capacity',
+  "pouch_size",
+  "Pouch capacity",
   CONFIG.POUCH.DEFAULT_CAPACITY,
   CONFIG.POUCH.MIN_CAPACITY,
   CONFIG.POUCH.MAX_CAPACITY
 )
 
 register_option_bool(
-  'idols_are_storable',
-  'Idols can be stored',
+  "idols_are_storable",
+  "Idols can be stored",
   false
 )
 
 register_option_bool(
-  'pets_are_storable',
-  'Pets can be stored',
+  "pets_are_storable",
+  "Pets can be stored",
   false
 )
 
 register_option_bool(
-  'mounts_are_storable',
-  'Mounts can be stored after they are tamed',
+  "mounts_are_storable",
+  "Mounts can be stored after they are tamed",
   false
 )
 
 register_option_bool(
-  'monster_are_storable',
-  'Monsters can be stored after they are killed',
+  "monster_are_storable",
+  "Monsters can be stored after they are killed",
   true
 )
 
 register_option_combo(
-  'retrieval_strategy',
-  'Item retrieval',
-  'Last inserted\0\0',
+  "retrieval_strategy",
+  "Item retrieval",
+  "Last inserted\0\0",
   1
 )
 
