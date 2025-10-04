@@ -42,7 +42,7 @@ local Pouch = {}
 Pouch.__index = Pouch
 
 ---@return Pouch
-function Pouch:init()
+function Pouch.init()
   return setmetatable({
     slots = {}
   }, Pouch)
@@ -56,7 +56,7 @@ function Pouch:store(player_uid, held_uid)
     return
   end
 
-  table.insert(self.slots, 1, Metadata:from_entity(held_uid))
+  table.insert(self.slots, 1, Metadata.init(held_uid))
 
   -- create pickup visual effect
   generate_particles(PARTICLEEMITTER.ITEMDUST, held_uid)

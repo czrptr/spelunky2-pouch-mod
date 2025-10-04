@@ -89,7 +89,7 @@ local function initialize_user_data()
       player.user_data = {}
     end
 
-    player.user_data.pouch = Pouch:init()
+    player.user_data.pouch = Pouch.init()
     player.user_data.previous_input = nil
   end
 end

@@ -13,7 +13,7 @@ Metadata.__index = Metadata
 
 ---@param uid integer
 ---@return Metadata
-function Metadata:from_entity(uid)
+function Metadata.init(uid)
   local entity = get_entity(uid)
   local texture = entity:get_texture()
   local texture_definition = get_texture_definition(texture)
