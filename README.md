@@ -2,40 +2,60 @@
 # Spelunky 2 Pouch Mod
 
 ## Description
-The Pouch mod introduces a portable item-storage system for Spelunky 2, allowing players to temporarily stash, and later retrieve, items they are carrying. It adds an on-screen pouch HUD visible during gameplay and level transitions.
+The Pouch mod introduces a portable item-storage system for Spelunky 2, allowing players to temporarily stash and retrieve carried items. It adds an on-screen pouch HUD visible during gameplay and level transitions.
 
-Features & Behavior:
-- Players can store the item they’re currently holding (if any) into their pouch by pressing the Up + Door.
-- When not holding an item, the same input combo (Up + Door) will retrieve the last inserted item from the pouch, placing it back into the player’s hand (if possible).
-- Players drop the contents of the pouch onto the ground upon death.
-- Pouches can be configured using the following options:
-  - Pouch capacity (2 by default)
-  - Idols can be stored (false by default)
-  - Pets can be stored (false by default)
-  - Mounts can be stored after they are tamed (false by default)
-  - Monsters can be stored after they are killed (true by default, includes pets and mounts)
+## Input Map
+| Action             | Condition       | Input        |
+|--------------------|-----------------|--------------|
+| Retrieve or store  | While climbing  | LEFT + DOOR  |
+| Retrieve or store  | Otherwise       | UP + DOOR    |
+| Rotate contents    | While climbing  | DOWN + DOOR  |
+| Rotate contents    | Otherwise       | RIGHT + DOOR |
 
-Planned features:
-- Add more option for item retrieval such as Select, First-in First-out (currently only Last-in First-out)
-- Change the pouch capacity from a fixed maximum that a applies to all players to a player specific stat which can be increased with an item (via item pools).
-- Online multiplayer support (I haven't tested it online so maybe it works already, let me know 😅)
+## Features & Behavior
+- Store currently held items into your pouch
+- Retrieve the last inserted item when not holding anything
+- Rotate pouch contents, moving the last item to the first slot
+- All pouch items drop on the ground upon death
+- Configurable options:
+  - Pouch capacity (default: 2 slots)
+  - Allow storing idols (default: false)
+  - Allow storing pets (default: false)
+  - Allow storing tamed mounts (default: false)
+  - Allow storing dead monsters (default: true, includes pets and mounts)
+  - Item retrieval method (default: Last inserted)
 
-Explicitly not planned features:
-- Being able to store the cursed pot
-- Being able to store live monsters, NPCs or other players
+## Planned Features
+- "Selectable" retrieval option for choosing which item to retrieve
+- Scalable pouch capacity via in-game items rather than fixed maximum
+- Online multiplayer support (compatibility untested)
+- Modded item support (requires changes to [Custom Entities Library](https://spelunky.fyi/mods/m/custom-entities-library/))
+
+## Not Planned
+- Storing cursed pots
+- Storing live monsters, NPCs, or other players
 
 ## Changelog
 
-### 1.0 - Initial release
+### 1.1
+**Added:**
+- Separate climbing inputs for better gameplay flow. Use LEFT/RIGHT instead of UP/DOWN when climbing to prevent movement.
+- Item rotation: shift last item to first slot (see input map)
 
-Added:
-- Base pouch system: players can store and retrieve items via input (Up + Door), items drop upon death
-- Options: Configurable pouch capacity and item acceptance
-- UI: slot grid overlay during levels and pouch panel during transition
+**Fixed:**
+- Accidental retrieval when passing through any door
+- Mole corpses falling through floors after retrieval
+- Monsters appearing behind player after retrieval
 
-Fixed:
-- Prevent retrieval when passing through a door (to avoid losing items)
+### 1.0
+**Added:**
+- Core pouch system: store/retrieve with Up + Door
+- Death behavior: items drop from pouch
+- Configuration options for capacity and allowed items
+- UI: slot grid overlay and transition panel
+
+**Fixed:**
+- Accidental retrieval when passing through level exit door
 
 ## Contributions
-
-I am open to feedback, feature requests and bug reports.
+I welcome feedback, feature requests, and bug reports!
