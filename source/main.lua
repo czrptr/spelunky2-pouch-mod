@@ -50,6 +50,20 @@ local function bounds_from(left, bottom, width, height)
   return AABB:new(left, bottom + height, left + width, bottom)
 end
 
+---@param player Player
+---@return boolean
+local function can_enter_a_door(player)
+  local door_uid = get_entities_overlapping_hitbox(
+    ENT_TYPE.DOOR, MASK.ANY, player:get_hitbox(), player.layer)[1]
+
+  if door_uid == nil then
+    return false
+  end
+
+  local door = get_entity(door_uid) --[[@as Door]]
+  return door:can_enter(player)
+end
+
 -- ==============================================================================
 
 ---@param save_context SaveContext
@@ -77,6 +91,7 @@ end
 ---@class UserData
 ---@field pouch Pouch
 ---@field previous_input INPUTS?
+---@field can_enter_a_door boolean
 
 ---@class Player
 ---@field user_data UserData
@@ -91,6 +106,7 @@ local function initialize_user_data()
 
     player.user_data.pouch = Pouch.init()
     player.user_data.previous_input = nil
+    player.user_data.can_enter_a_door = false
   end
 end
 
@@ -118,20 +134,19 @@ local function on_game_frame()
     local previous_input = player.user_data.previous_input
     ---@cast previous_input INPUTS
 
-    if test_flag(current_input, INPUT_FLAG.UP)
-        and was_just_pressed(current_input, previous_input, INPUT_FLAG.DOOR) then
-      -- prevent players from retrieving right as they exit the floor so that they
-      -- don't accidentally lose items that cannot be carried through level trasitions
-      local door_uid = get_entities_overlapping_hitbox(
-        ENT_TYPE.FLOOR_DOOR_EXIT, MASK.ANY, player:get_hitbox(), LAYER.BOTH)[1]
-
-      if player.holding_uid ~= -1 then
-        player.user_data.pouch:store(player.uid, player.holding_uid)
-      elseif door_uid == nil then
-        player.user_data.pouch:retrieve(player.uid)
+    if was_just_pressed(current_input, previous_input, INPUT_FLAG.DOOR) then
+      if test_flag(current_input, INPUT_FLAG.UP) then
+        if player.holding_uid ~= -1 then
+          player.user_data.pouch:store(player.uid, player.holding_uid)
+        elseif not player.user_data.can_enter_a_door then
+          player.user_data.pouch:retrieve(player.uid)
+        end
+      elseif test_flag(current_input, INPUT_FLAG.DOWN) then
+        -- TODO: player.user_data.pouch:rotate()
       end
     end
     player.user_data.previous_input = current_input
+    player.user_data.can_enter_a_door = can_enter_a_door(player)
   end
 end
 
