@@ -3,7 +3,6 @@
 TODO:
   - add LIFO (currently only option), FIFO and SELECTABLE options for pouch interactions
   - change capacity to starting capacity and add item that expands the capacity to item pools
-  - forbit pouch interactions while climbing
   - horizontally center the transition cards
 ]]
 
@@ -130,18 +129,21 @@ local function on_game_frame()
 
   -- handle player input
   for _, player in ipairs(get_local_players()) do
+    local player_is_climbing = player:get_behavior() == CONFIG.BEHAVIOR.PLAYER.CLIMBING
+    local MODAL_INPUTS = player_is_climbing and CONFIG.INPUTS.WHILE_CLIMBING or CONFIG.INPUTS.ON_GROUND
+
     local current_input = player.input.buttons
     local previous_input = player.user_data.previous_input
     ---@cast previous_input INPUTS
 
     if was_just_pressed(current_input, previous_input, INPUT_FLAG.DOOR) then
-      if test_flag(current_input, INPUT_FLAG.UP) then
+      if test_flag(current_input, MODAL_INPUTS.STORE_OR_RETRIEVE) then
         if player.holding_uid ~= -1 then
           player.user_data.pouch:store(player.uid, player.holding_uid)
         elseif not player.user_data.can_enter_a_door then
           player.user_data.pouch:retrieve(player.uid)
         end
-      elseif test_flag(current_input, INPUT_FLAG.DOWN) then
+      elseif test_flag(current_input, MODAL_INPUTS.ROTATE) then
         player.user_data.pouch:rotate()
       end
     end

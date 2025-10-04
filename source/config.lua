@@ -289,6 +289,25 @@ local STORABLE_CONFIG <const> = {
   MOUNTS = STORABLE_MOUNTS,
 }
 
+local PLAYER_HEHAVIOR <const> = {
+  CLIMBING = 6,
+}
+
+local BEHAVIOR <const> = {
+  PLAYER = PLAYER_HEHAVIOR
+}
+
+local INPUTS <const> = {
+  ON_GROUND = {
+    STORE_OR_RETRIEVE = INPUT_FLAG.UP,
+    ROTATE = INPUT_FLAG.DOWN,
+  },
+  WHILE_CLIMBING = {
+    STORE_OR_RETRIEVE = INPUT_FLAG.LEFT,
+    ROTATE = INPUT_FLAG.RIGHT,
+  },
+}
+
 -- ==============================================================================
 
 ---@class Config
@@ -301,6 +320,8 @@ local CONFIG <const> = {
   AUDIO = AUDIO_CONFIG,
   UI = UI_CONFIG,
   STORABLE = STORABLE_CONFIG,
+  BEHAVIOR = BEHAVIOR,
+  INPUTS = INPUTS,
 }
 
 return CONFIG
