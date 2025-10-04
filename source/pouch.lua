@@ -75,7 +75,7 @@ function Pouch:retrieve(player_uid)
     return
   end
 
-  local held_uid = table.remove(self.slots, 1):spawn_at(player_uid)
+  local held_uid = table.remove(self.slots, 1):spawn()
   pick_up(player_uid, held_uid)
 
   -- Immediate drop/re-pickup on next frame
@@ -96,7 +96,9 @@ end
 function Pouch:spill(player_uid)
   local direction = 0.1
   while #self.slots > 0 do
-    table.remove(self.slots, 1):spawn_at(player_uid, direction, 0.1)
+    local x, y, _ = get_position(player_uid)
+    local entity_id = table.remove(self.slots, 1):spawn()
+    move_entity(entity_id, x, y, direction, 0.1)
     direction = direction * -1
   end
 end
