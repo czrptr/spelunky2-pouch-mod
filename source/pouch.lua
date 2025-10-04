@@ -103,4 +103,13 @@ function Pouch:spill(player_uid)
   end
 end
 
+function Pouch:rotate()
+  if #self.slots < 2 then
+    return
+  end
+
+  local last_item = table.remove(self.slots, #self.slots)
+  table.insert(self.slots, 1, last_item)
+end
+
 return Pouch

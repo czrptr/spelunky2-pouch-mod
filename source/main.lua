@@ -1,7 +1,7 @@
 -- POUCH MOD
 --[[
 TODO:
-  - add FIFO (currently only option), LIFO and SELECTABLE options for pouch interactions
+  - add LIFO (currently only option), FIFO and SELECTABLE options for pouch interactions
   - change capacity to starting capacity and add item that expands the capacity to item pools
   - forbit pouch interactions while climbing
   - horizontally center the transition cards
@@ -142,7 +142,7 @@ local function on_game_frame()
           player.user_data.pouch:retrieve(player.uid)
         end
       elseif test_flag(current_input, INPUT_FLAG.DOWN) then
-        -- TODO: player.user_data.pouch:rotate()
+        player.user_data.pouch:rotate()
       end
     end
     player.user_data.previous_input = current_input
