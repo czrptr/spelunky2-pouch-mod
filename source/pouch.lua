@@ -73,12 +73,15 @@ function Pouch:store(player_uid, held_uid)
 end
 
 ---@param player_uid integer
-function Pouch:retrieve(player_uid)
+---@param slot_index integer?
+function Pouch:retrieve(player_uid, slot_index)
   if #self.slots == 0 then
     return
   end
 
-  local held_uid = table.remove(self.slots, 1):spawn()
+  slot_index = slot_index ~= nil and slot_index or 1
+
+  local held_uid = table.remove(self.slots, slot_index):spawn()
   pick_up(player_uid, held_uid)
 
   -- Immediate drop/re-pickup on next frame

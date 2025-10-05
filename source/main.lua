@@ -1,7 +1,6 @@
 -- POUCH MOD
 --[[
 TODO:
-  - add SELECTABLE option for pouch retrieval (won't be able to rotate on select)
   - change capacity to starting capacity and add item that expands the capacity to item pools
   - horizontally center the transition cards
 ]]
@@ -90,7 +89,7 @@ end
 
 ---@param self Player
 ---@return boolean
-local function on_player_pre_process_input(self)
+local function on_player_last_inserted_pre_process_input(self)
   local player_is_climbing = self:get_behavior() == CONFIG.BEHAVIOR.PLAYER.CLIMBING
   local accidental_drop_is_impossible = not can_enter_a_door(self)
   local MODAL_INPUTS = player_is_climbing and CONFIG.INPUTS.WHILE_CLIMBING or CONFIG.INPUTS.ON_GROUND
@@ -114,6 +113,57 @@ local function on_player_pre_process_input(self)
   return false
 end
 
+---@param self Player
+---@return boolean
+local function on_player_selectable_pre_process_input(self)
+  local current_input = self.input.buttons
+  local previous_input = self.user_data.previous_input
+  local input_captured
+
+  if self.user_data.is_retrieving then
+    if was_just_pressed(current_input, previous_input, INPUT_FLAG.RIGHT) then
+      self.user_data.selected_slot = self.user_data.selected_slot + 1
+    elseif was_just_pressed(current_input, previous_input, INPUT_FLAG.LEFT) then
+      self.user_data.selected_slot = self.user_data.selected_slot + 1
+    elseif was_just_pressed(current_input, previous_input, INPUT_FLAG.DOOR) then
+      self.user_data.pouch:retrieve(self.uid, self.user_data.selected_slot)
+      self.user_data.is_retrieving = false
+    elseif was_just_pressed(current_input, previous_input, INPUT_FLAG.DOWN) then
+      self.user_data.is_retrieving = false
+    end
+
+    if self.user_data.selected_slot > #self.user_data.pouch.slots then
+      self.user_data.selected_slot = 1
+    elseif self.user_data.selected_slot < 0 then
+      self.user_data.selected_slot = #self.user_data.pouch.slots
+    end
+
+    input_captured = true
+  else
+    local player_is_climbing = self:get_behavior() == CONFIG.BEHAVIOR.PLAYER.CLIMBING
+    local accidental_drop_is_impossible = not can_enter_a_door(self)
+    local MODAL_INPUTS = player_is_climbing and CONFIG.INPUTS.WHILE_CLIMBING or CONFIG.INPUTS.ON_GROUND
+
+    if was_just_pressed(current_input, previous_input, INPUT_FLAG.DOOR) then
+      if test_flag(current_input, MODAL_INPUTS.STORE_OR_RETRIEVE) then
+        if self.holding_uid ~= -1 then
+          self.user_data.pouch:store(self.uid, self.holding_uid)
+        elseif accidental_drop_is_impossible then
+          self.user_data.is_retrieving = true
+          self.user_data.selected_slot = 1
+        end
+      elseif test_flag(current_input, MODAL_INPUTS.ROTATE) then
+        self.user_data.pouch:rotate()
+      end
+    end
+
+    input_captured = false
+  end
+
+  self.user_data.previous_input = current_input
+  return input_captured
+end
+
 local function initialize()
   for idx, player in ipairs(get_local_players()) do
     -- guard against other mods which use user_data
@@ -127,6 +177,8 @@ local function initialize()
     player.user_data.can_enter_a_door = false
     player.user_data.retrieval_option =
         options[string.format("player%i_retrieval_option", idx)]
+    player.user_data.is_retrieving = false
+    player.user_data.selected_slot = 1
   end
 end
 
@@ -135,7 +187,11 @@ local function handle_level_start()
   is_in_transition = false
   for _, player in ipairs(get_local_players()) do
     player:set_pre_kill(on_player_kill)
-    player:set_pre_process_input(on_player_pre_process_input)
+    if player.user_data.retrieval_option == CONFIG.RETRIEVAL_OPTION.LAST_INSERTED then
+      player:set_pre_process_input(on_player_last_inserted_pre_process_input)
+    else
+      player:set_pre_process_input(on_player_selectable_pre_process_input)
+    end
   end
 end
 
@@ -159,13 +215,20 @@ local function render_slots(render_context)
       render_context:draw_screen_texture(
         CONFIG.UI.SLOT.TEXTURE, 0, 0, bounds, Color:new(1, 1, 1, CONFIG.UI.SLOT.BACKGROUND_ALPHA))
 
+      local icon_alpha = CONFIG.UI.SLOT.ICON_ALPHA
+      if player.user_data.is_retrieving and player.user_data.selected_slot == jdx then
+        local zoom = 0.008
+        icon_alpha = CONFIG.UI.SLOT.SELECTED_ICON_ALPHA
+        bounds = bounds:extrude(zoom, zoom * CONFIG.UI.ASPECT_RATIO)
+      end
+
       local metadata = player.user_data.pouch.slots[jdx]
       if metadata ~= nil then
         bounds = bounds:extrude(
           CONFIG.UI.SLOT.ICON_ZOOM_X, CONFIG.UI.SLOT.ICON_ZOOM_Y)
         render_context:draw_screen_texture(
-          metadata.texture, metadata.sprite_row, metadata.sprite_column, bounds,
-          Color:new(1, 1, 1, CONFIG.UI.SLOT.ICON_ALPHA))
+          metadata.texture, metadata.sprite_row, metadata.sprite_column,
+          bounds, Color:new(1, 1, 1, icon_alpha))
       end
     end
   end

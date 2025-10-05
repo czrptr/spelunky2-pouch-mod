@@ -3,6 +3,8 @@
 ---@field previous_input INPUTS
 ---@field can_enter_a_door boolean
 ---@field retrieval_option RetrievalOption
+---@field is_retrieving boolean
+---@field selected_slot integer
 
 ---@class Player
 ---@field user_data UserData
@@ -100,6 +102,7 @@ end
 ---@field MARGIN number Screen-space margin between adjacent slots
 ---@field BACKGROUND_ALPHA number Transparency level for slot background rendering
 ---@field ICON_ALPHA number Transparency level for slot icon rendering
+---@field SELECTED_ICON_ALPHA number Transparency level for selected slot icon rendering
 ---@field ICON_ZOOM_X number Zoom factor for icon size relative to background (x-axis)
 ---@field ICON_ZOOM_Y number Zoom factor for icon size relative to background (y-axis)
 ---@field TEXTURE TEXTURE Texture used for rendering empty slot backgrounds
@@ -119,6 +122,7 @@ local UI_SLOT_CONFIG <const> = (function()
     MARGIN = 0.0035,
     BACKGROUND_ALPHA = 0.35,
     ICON_ALPHA = 0.5,
+    SELECTED_ICON_ALPHA = 0.75,
     ICON_ZOOM_X = ICON_ZOOM_X,
     ICON_ZOOM_Y = ICON_ZOOM_X * ASPECT_RATIO,
     TEXTURE = create_texture("slot.png", TEXTURE_WIDTH, TEXTURE_HEIGHT),
