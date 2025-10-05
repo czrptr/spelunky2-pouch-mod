@@ -1,10 +1,9 @@
 ---@class UserData
 ---@field pouch Pouch
 ---@field previous_input INPUTS
----@field can_enter_a_door boolean
----@field retrieval_option RetrievalOption
 ---@field is_retrieving boolean
 ---@field selected_slot integer
+---@field retrieval_option RetrievalOption
 
 ---@class Player
 ---@field user_data UserData
