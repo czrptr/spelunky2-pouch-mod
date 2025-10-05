@@ -324,7 +324,7 @@ register_option_bool(
 )
 
 register_option_bool(
-  "monster_are_storable",
+  "monsters_are_storable",
   "Monsters can be stored after they are killed",
   true
 )
