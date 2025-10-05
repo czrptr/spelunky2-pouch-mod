@@ -37,7 +37,7 @@ The "Pouch" mod introduces a portable item-storage system, allowing players to t
   - Allow storing pets (default: false)
   - Allow storing tamed mounts (default: false)
   - Allow storing dead monsters (default: true, includes pets and mounts)
-  - Item retrieval method (default: "Last Inserted"; other option: "Selectable")
+  - Item retrieval method (default: "Last Inserted"; other option: "Selectable"; per player)
 
 ### Planned
 - **Online multiplayer support** (compatibility untested, let me know if it works)
