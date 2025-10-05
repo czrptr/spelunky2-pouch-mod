@@ -56,7 +56,7 @@ end
 ---@return boolean
 local function can_enter_a_door(player)
   local door_uid = get_entities_overlapping_hitbox(
-    ENT_TYPE.DOOR, MASK.ANY, player:get_hitbox(), player.layer)[1]
+    ENT_TYPE.DOOR, MASK.ANY, player:get_hitbox(), LAYER.BOTH)[1]
 
   if door_uid == nil then
     return false
@@ -82,12 +82,36 @@ local function load_options(load_context)
 end
 
 ---@param self Player
----@param _ boolean
----@param resposible Entity
 ---@return boolean
-local function on_player_kill(self, _, resposible)
+local function on_player_kill(self)
   self.user_data.pouch:spill(self.uid)
   return false -- the default kill logic still runs
+end
+
+---@param self Player
+---@return boolean
+local function on_player_pre_process_input(self)
+  local player_is_climbing = self:get_behavior() == CONFIG.BEHAVIOR.PLAYER.CLIMBING
+  local accidental_drop_is_impossible = not can_enter_a_door(self)
+  local MODAL_INPUTS = player_is_climbing and CONFIG.INPUTS.WHILE_CLIMBING or CONFIG.INPUTS.ON_GROUND
+
+  local current_input = self.input.buttons
+  local previous_input = self.user_data.previous_input
+
+  if was_just_pressed(current_input, previous_input, INPUT_FLAG.DOOR) then
+    if test_flag(current_input, MODAL_INPUTS.STORE_OR_RETRIEVE) then
+      if self.holding_uid ~= -1 then
+        self.user_data.pouch:store(self.uid, self.holding_uid)
+      elseif accidental_drop_is_impossible then
+        self.user_data.pouch:retrieve(self.uid)
+      end
+    elseif test_flag(current_input, MODAL_INPUTS.ROTATE) then
+      self.user_data.pouch:rotate()
+    end
+  end
+
+  self.user_data.previous_input = current_input
+  return false
 end
 
 local function initialize()
@@ -99,7 +123,7 @@ local function initialize()
     end
 
     player.user_data.pouch = Pouch.init()
-    player.user_data.previous_input = nil
+    player.user_data.previous_input = INPUTS.RUN
     player.user_data.can_enter_a_door = false
     player.user_data.retrieval_option =
         options[string.format("player%i_retrieval_option", idx)]
@@ -111,42 +135,13 @@ local function handle_level_start()
   is_in_transition = false
   for _, player in ipairs(get_local_players()) do
     player:set_pre_kill(on_player_kill)
+    player:set_pre_process_input(on_player_pre_process_input)
   end
 end
 
 local function handle_transition()
   enable_mod()
   is_in_transition = true
-end
-
-local function on_game_frame()
-  if not is_enabled then
-    return
-  end
-
-  -- handle player input
-  for _, player in ipairs(get_local_players()) do
-    local player_is_climbing = player:get_behavior() == CONFIG.BEHAVIOR.PLAYER.CLIMBING
-    local MODAL_INPUTS = player_is_climbing and CONFIG.INPUTS.WHILE_CLIMBING or CONFIG.INPUTS.ON_GROUND
-
-    local current_input = player.input.buttons
-    local previous_input = player.user_data.previous_input
-    ---@cast previous_input INPUTS
-
-    if was_just_pressed(current_input, previous_input, INPUT_FLAG.DOOR) then
-      if test_flag(current_input, MODAL_INPUTS.STORE_OR_RETRIEVE) then
-        if player.holding_uid ~= -1 then
-          player.user_data.pouch:store(player.uid, player.holding_uid)
-        elseif not player.user_data.can_enter_a_door then
-          player.user_data.pouch:retrieve(player.uid)
-        end
-      elseif test_flag(current_input, MODAL_INPUTS.ROTATE) then
-        player.user_data.pouch:rotate()
-      end
-    end
-    player.user_data.previous_input = current_input
-    player.user_data.can_enter_a_door = can_enter_a_door(player)
-  end
 end
 
 ---@param render_context VanillaRenderContext
@@ -301,7 +296,6 @@ set_callback(save_options, ON.SAVE)
 set_callback(load_options, ON.LOAD)
 
 set_callback(initialize, ON.START)
-set_callback(on_game_frame, ON.GAMEFRAME)
 set_callback(render_user_interface, ON.RENDER_POST_HUD)
 
 set_callback(handle_level_start, ON.LEVEL)

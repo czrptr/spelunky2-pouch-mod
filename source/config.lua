@@ -1,6 +1,6 @@
 ---@class UserData
 ---@field pouch Pouch
----@field previous_input INPUTS?
+---@field previous_input INPUTS
 ---@field can_enter_a_door boolean
 ---@field retrieval_option RetrievalOption
 
