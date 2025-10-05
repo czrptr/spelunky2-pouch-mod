@@ -1,6 +1,9 @@
 local CONFIG = require("config")
 local Metadata = require("metadata")
 
+---@diagnostic disable-next-line unknown-cast-variable
+---@cast options Options | any
+
 -- ==============================================================================
 
 ---@param sfx AudioSoundConfig
@@ -22,7 +25,7 @@ local function is_storable(uid)
   if CONFIG.STORABLE.IDOLS[type] and options.idols_are_storable then
     return true
   end
-  if test_flag(entity.flags, ENT_FLAG.DEAD) then
+  if test_flag(entity.flags, ENT_FLAG.DEAD) and options.monsters_are_storable then
     return true
   end
   if CONFIG.STORABLE.PETS[type] and options.pets_are_storable then

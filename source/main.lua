@@ -16,6 +16,9 @@ meta = {
 local CONFIG = require("config")
 local Pouch = require("pouch")
 
+---@diagnostic disable-next-line unknown-cast-variable
+---@cast options Options | any
+
 -- ==============================================================================
 
 ---@type boolean
@@ -87,16 +90,8 @@ local function on_player_kill(self, _, resposible)
   return false -- the default kill logic still runs
 end
 
----@class UserData
----@field pouch Pouch
----@field previous_input INPUTS?
----@field can_enter_a_door boolean
-
----@class Player
----@field user_data UserData
-
-local function initialize_user_data()
-  for _, player in ipairs(get_local_players()) do
+local function initialize()
+  for idx, player in ipairs(get_local_players()) do
     -- guard against other mods which use user_data
     if player.user_data == nil then
       ---@diagnostic disable-next-line: missing-fields
@@ -106,6 +101,8 @@ local function initialize_user_data()
     player.user_data.pouch = Pouch.init()
     player.user_data.previous_input = nil
     player.user_data.can_enter_a_door = false
+    player.user_data.retrieval_option =
+        options[string.format("player%i_retrieval_option", idx)]
   end
 end
 
@@ -273,17 +270,37 @@ register_option_bool(
 )
 
 register_option_combo(
-  "retrieval_strategy",
-  "Item retrieval",
-  "Last inserted\0\0",
+  "player1_retrieval_option",
+  "Player 1 item retrieval",
+  "Last inserted\0Selectable\0\0",
   1
 )
 
+register_option_combo(
+  "player2_retrieval_option",
+  "Player 2 item retrieval",
+  "Last inserted\0Selectable\0\0",
+  1
+)
+
+register_option_combo(
+  "player3_retrieval_option",
+  "Player 3 item retrieval",
+  "Last inserted\0Selectable\0\0",
+  1
+)
+
+register_option_combo(
+  "player4_retrieval_option",
+  "Player 4 item retrieval",
+  "Last inserted\0Selectable\0\0",
+  1
+)
 
 set_callback(save_options, ON.SAVE)
 set_callback(load_options, ON.LOAD)
 
-set_callback(initialize_user_data, ON.START)
+set_callback(initialize, ON.START)
 set_callback(on_game_frame, ON.GAMEFRAME)
 set_callback(render_user_interface, ON.RENDER_POST_HUD)
 
