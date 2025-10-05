@@ -72,10 +72,19 @@ function Pouch:store(player_uid, held_uid)
   kill_entity(held_uid)
 end
 
+function Pouch:can_retrieve()
+  if #self.slots == 0 then
+    -- play sound effect
+    play_sfx(CONFIG.AUDIO.INVALID)
+    return false
+  end
+  return true
+end
+
 ---@param player_uid integer
 ---@param slot_index integer?
 function Pouch:retrieve(player_uid, slot_index)
-  if #self.slots == 0 then
+  if not self:can_retrieve() then
     return
   end
 
