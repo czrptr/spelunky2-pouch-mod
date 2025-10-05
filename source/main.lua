@@ -141,14 +141,15 @@ local function on_player_selectable_pre_process_input(self)
     input_captured = true
   else
     local player_is_climbing = self:get_behavior() == CONFIG.BEHAVIOR.PLAYER.CLIMBING
-    local accidental_drop_is_impossible = not can_enter_a_door(self)
+    local accidental_drop_is_possible = not can_enter_a_door(self)
+    local pouch_is_empty = #self.user_data.pouch.slots == 0
     local MODAL_INPUTS = player_is_climbing and CONFIG.INPUTS.WHILE_CLIMBING or CONFIG.INPUTS.ON_GROUND
 
     if was_just_pressed(current_input, previous_input, INPUT_FLAG.DOOR) then
       if test_flag(current_input, MODAL_INPUTS.STORE_OR_RETRIEVE) then
         if self.holding_uid ~= -1 then
           self.user_data.pouch:store(self.uid, self.holding_uid)
-        elseif accidental_drop_is_impossible then
+        elseif not (accidental_drop_is_possible or pouch_is_empty) then
           self.user_data.is_retrieving = true
           self.user_data.selected_slot = 1
         end
