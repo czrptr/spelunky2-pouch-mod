@@ -23,8 +23,18 @@ local Pouch = require("pouch")
 ---@type boolean
 local is_enabled = false
 
+---@return boolean
+local function get_is_enabled()
+  return is_enabled
+end
+
 ---@type boolean
 local is_in_transition = false
+
+---@return boolean
+local function get_is_in_transition()
+  return is_in_transition
+end
 
 local function enable_mod()
   is_enabled = true
@@ -34,21 +44,16 @@ local function disable_mod()
   is_enabled = false
 end
 
+local ui = require("ui").using(get_is_enabled, get_is_in_transition)
+
+-- ==============================================================================
+
 ---@param current_input INPUTS
 ---@param previous_input INPUTS
 ---@param input_flag INPUT_FLAG
 ---@return boolean
 local function was_just_pressed(current_input, previous_input, input_flag)
   return test_flag(current_input, input_flag) and not test_flag(previous_input, input_flag)
-end
-
----@param left number
----@param bottom number
----@param width number
----@param height number
----@return AABB
-local function bounds_from(left, bottom, width, height)
-  return AABB:new(left, bottom + height, left + width, bottom)
 end
 
 ---@param player Player
@@ -202,118 +207,6 @@ local function handle_transition()
   is_in_transition = true
 end
 
----@param render_context VanillaRenderContext
-local function render_slots(render_context)
-  for idx, player in ipairs(get_local_players()) do
-    for jdx = 1, options.pouch_size do
-      local bounds = bounds_from(
-        CONFIG.UI.SLOT.BASE_X
-        + (CONFIG.UI.SLOT.WIDTH + CONFIG.UI.SLOT.MARGIN) * (jdx - 1)
-        + CONFIG.UI.SLOT.PLAYER_STRIDE * (idx - 1),
-        CONFIG.UI.SLOT.BASE_Y,
-        CONFIG.UI.SLOT.WIDTH,
-        CONFIG.UI.SLOT.HEIGHT
-      )
-      render_context:draw_screen_texture(
-        CONFIG.UI.SLOT.TEXTURE, 0, 0, bounds, Color:new(1, 1, 1, CONFIG.UI.SLOT.BACKGROUND_ALPHA))
-
-      local icon_alpha = CONFIG.UI.SLOT.ICON_ALPHA
-      if player.user_data.is_retrieving and player.user_data.selected_slot == jdx then
-        local zoom = 0.008
-        icon_alpha = CONFIG.UI.SLOT.SELECTED_ICON_ALPHA
-        bounds = bounds:extrude(zoom, zoom * CONFIG.UI.ASPECT_RATIO)
-      end
-
-      local metadata = player.user_data.pouch.slots[jdx]
-      if metadata ~= nil then
-        bounds = bounds:extrude(
-          CONFIG.UI.SLOT.ICON_ZOOM_X, CONFIG.UI.SLOT.ICON_ZOOM_Y)
-        render_context:draw_screen_texture(
-          metadata.texture, metadata.sprite_row, metadata.sprite_column,
-          bounds, Color:new(1, 1, 1, icon_alpha))
-
-        if player.user_data.is_retrieving then
-          local SIZE = 0.5
-          local OFFSET = 0.7
-          local MARGIN = 0.6
-          bounds = bounds_from(
-            player.x - SIZE / 2 + (jdx - 1) * MARGIN,
-            player.y - SIZE / 2 + OFFSET,
-            SIZE, SIZE)
-          render_context:draw_world_texture(
-            CONFIG.UI.SLOT.TEXTURE, 0, 0, bounds, Color:new(1, 1, 1, 0.5))
-
-          if player.user_data.selected_slot == jdx then
-            bounds = bounds:extrude(0.2)
-          end
-
-          render_context:draw_world_texture(
-            metadata.texture, metadata.sprite_row, metadata.sprite_column, bounds, Color:new(1, 1, 1, 0.75))
-        end
-      end
-    end
-  end
-end
-
----@param render_context VanillaRenderContext
-local function render_cards(render_context)
-  for idx, player in ipairs(get_local_players()) do
-    local bounds = bounds_from(
-      CONFIG.UI.BACKGROUND.BASE_X
-      + CONFIG.UI.POUCH.PLAYER_STRIDE * (idx - 1),
-      CONFIG.UI.BACKGROUND.BASE_Y,
-      CONFIG.UI.BACKGROUND.WIDTH,
-      CONFIG.UI.BACKGROUND.HEIGHT
-    )
-    render_context:draw_screen_texture(
-      CONFIG.UI.BACKGROUND.TEXTURE, 0, 0, bounds, Color:white())
-
-    bounds = bounds_from(
-      CONFIG.UI.POUCH.BASE_X
-      + CONFIG.UI.POUCH.PLAYER_STRIDE * (idx - 1),
-      CONFIG.UI.POUCH.BASE_Y,
-      CONFIG.UI.POUCH.WIDTH,
-      CONFIG.UI.POUCH.HEIGHT
-    )
-    render_context:draw_screen_texture(
-      CONFIG.UI.POUCH.TEXTURE, 0, 0, bounds, Color:white())
-
-    local zoom = -0.002
-    bounds = bounds:extrude(zoom, zoom * CONFIG.UI.ASPECT_RATIO):offset(-0.025, 0.01)
-    render_context:draw_screen_texture(
-      player:get_texture(), 9, 14, bounds, Color:white(), -0.2, 0, 0)
-
-    for jdx, metadata in ipairs(player.user_data.pouch.slots) do
-      bounds = bounds_from(
-        CONFIG.UI.BACKGROUND.BASE_X
-        + CONFIG.UI.POUCH.PLAYER_STRIDE * (idx - 1)
-        + CONFIG.UI.BACKGROUND.SLOT_POSITIONS[jdx].X,
-        CONFIG.UI.BACKGROUND.BASE_Y
-        + CONFIG.UI.BACKGROUND.SLOT_POSITIONS[jdx].Y,
-        CONFIG.UI.SLOT.WIDTH,
-        CONFIG.UI.SLOT.HEIGHT
-      )
-      zoom = 0.015
-      bounds = bounds:extrude(zoom, zoom * CONFIG.UI.ASPECT_RATIO)
-      render_context:draw_screen_texture(
-        metadata.texture, metadata.sprite_row, metadata.sprite_column, bounds, Color:white())
-    end
-  end
-end
-
----@param render_context VanillaRenderContext
-local function render_user_interface(render_context)
-  if not is_enabled then
-    return
-  end
-
-  if is_in_transition then
-    render_cards(render_context)
-  elseif pause:get_pause() == PAUSE_TYPE.NONE then
-    render_slots(render_context)
-  end
-end
-
 -- ==============================================================================
 
 register_option_int(
@@ -380,7 +273,7 @@ set_callback(save_options, ON.SAVE)
 set_callback(load_options, ON.LOAD)
 
 set_callback(initialize, ON.START)
-set_callback(render_user_interface, ON.RENDER_POST_HUD)
+set_callback(ui.render, ON.RENDER_POST_HUD)
 
 set_callback(handle_level_start, ON.LEVEL)
 set_callback(disable_mod, ON.MENU)
