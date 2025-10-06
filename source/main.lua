@@ -231,6 +231,25 @@ local function render_slots(render_context)
         render_context:draw_screen_texture(
           metadata.texture, metadata.sprite_row, metadata.sprite_column,
           bounds, Color:new(1, 1, 1, icon_alpha))
+
+        if player.user_data.is_retrieving then
+          local SIZE = 0.5
+          local OFFSET = 0.7
+          local MARGIN = 0.6
+          bounds = bounds_from(
+            player.x - SIZE / 2 + (jdx - 1) * MARGIN,
+            player.y - SIZE / 2 + OFFSET,
+            SIZE, SIZE)
+          render_context:draw_world_texture(
+            CONFIG.UI.SLOT.TEXTURE, 0, 0, bounds, Color:new(1, 1, 1, 0.5))
+
+          if player.user_data.selected_slot == jdx then
+            bounds = bounds:extrude(0.2)
+          end
+
+          render_context:draw_world_texture(
+            metadata.texture, metadata.sprite_row, metadata.sprite_column, bounds, Color:new(1, 1, 1, 0.75))
+        end
       end
     end
   end
