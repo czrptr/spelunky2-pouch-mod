@@ -13,7 +13,7 @@ meta = {
 }
 
 local CONFIG = require("config")
-local Pouch = require("pouch")
+local Pouch = require("Pouch")
 
 ---@diagnostic disable-next-line unknown-cast-variable
 ---@cast options Options | any
