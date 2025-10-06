@@ -131,7 +131,7 @@ local function on_player_selectable_pre_process_input(self)
     if was_just_pressed(current_input, previous_input, INPUT_FLAG.RIGHT) then
       self.user_data.selected_slot = self.user_data.selected_slot + 1
     elseif was_just_pressed(current_input, previous_input, INPUT_FLAG.LEFT) then
-      self.user_data.selected_slot = self.user_data.selected_slot + 1
+      self.user_data.selected_slot = self.user_data.selected_slot - 1
     elseif was_just_pressed(current_input, previous_input, INPUT_FLAG.DOOR) then
       self.user_data.pouch:retrieve(self.uid, self.user_data.selected_slot)
       self.user_data.is_retrieving = false
