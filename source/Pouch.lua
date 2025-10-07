@@ -193,8 +193,7 @@ function Pouch:store(player_uid, held_uid)
   play_sfx(STORE)
 
   drop(player_uid, held_uid)
-  move_entity(held_uid, 0, 0, 0, 0);
-  kill_entity(held_uid)
+  get_entity(held_uid):destroy()
 end
 
 function Pouch:can_retrieve()
