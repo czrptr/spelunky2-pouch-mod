@@ -32,7 +32,7 @@ The "Pouch" mod introduces a portable item-storage system, allowing players to t
 - Rotate pouch contents, moving the last item to the first slot
 - All pouch items drop on the ground upon death
 - Configurable options:
-  - Pouch capacity (default: 2 slots)
+  - Pouch capacity (default: 2 slots; min: 1, max: 7)
   - Allow storing idols (default: false)
   - Allow storing pets (default: false)
   - Allow storing tamed mounts (default: false)
@@ -40,7 +40,7 @@ The "Pouch" mod introduces a portable item-storage system, allowing players to t
   - Item retrieval method (default: "Last Inserted"; other option: "Selectable"; per player)
 
 ### Planned
-- **Online multiplayer support** (compatibility untested, let me know if it works)
+- **Online multiplayer support** (compatibility untested; let me know if it works)
 - Scalable pouch capacity via in-game items rather than a fixed maximum
 - Modded item support (requires changes to the [Custom Entities Library](https://spelunky.fyi/mods/m/custom-entities-library/))
 
@@ -50,9 +50,19 @@ The "Pouch" mod introduces a portable item-storage system, allowing players to t
 
 ## Changelog
 
+### 2.0
+- **Added:**
+  - Total internal rework and cleanup
+  - Player corpses cannot be stored
+  - When retrieving, highlight the slots above the player character
+  - Guard against invalid user options (e.g. setting the capacity to something greater than the maximum allowed)
+- **Fixed:**
+  - Screen shaking when storing a container (e.g. crate) that contains bombs
+  - When using "Selectable" retrieval, trying to select the previous slot would select the next slot
+
 ### 1.2
 - **Added:**
-  - "Selectable" retrieve method; choose the slot you want to retrieve from
+  - "Selectable" retrieve method: choose the slot you want to retrieve from
   - Sound effect when a pouch action is impossible (e.g., retrieving when empty, storing when full)
 - **Fixed:**
   - Crash caused by accidental retrieval prevention check
