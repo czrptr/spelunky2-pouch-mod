@@ -177,8 +177,8 @@ function ui.render_slots(render_context)
 
         if player.user_data.is_retrieving then
           local bounds = bounds_from(
-            player.x - total_width / 2 + FLOATING_SLOT.MARGIN * (sdx - 1),
-            player.y - FLOATING_SLOT.SIZE / 2 + FLOATING_SLOT.OFFSET,
+            player.abs_x - total_width / 2 + FLOATING_SLOT.MARGIN * (sdx - 1),
+            player.abs_y - FLOATING_SLOT.SIZE / 2 + FLOATING_SLOT.OFFSET,
             FLOATING_SLOT.SIZE, FLOATING_SLOT.SIZE)
           local zoom =
               (player.user_data.selected_slot == sdx)
