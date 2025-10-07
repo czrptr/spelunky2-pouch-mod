@@ -201,15 +201,10 @@ end
 
 -- ==============================================================================
 
----@param get_is_enabled fun(): boolean
 ---@param get_is_in_transition fun(): boolean
-function ui.using(get_is_enabled, get_is_in_transition)
+function ui.using(get_is_in_transition)
   ---@param render_context VanillaRenderContext
   local function render(render_context)
-    if not get_is_enabled() then
-      return
-    end
-
     if get_is_in_transition() then
       render_cards(render_context)
     elseif pause:get_pause() == PAUSE_TYPE.NONE then

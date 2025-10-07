@@ -21,33 +21,15 @@ local POUCH_SIZE <const> = {
 
 -- ==============================================================================
 
----@type boolean
-local is_enabled = false
-
----@return boolean
-local function get_is_enabled()
-  return is_enabled
-end
-
----@type boolean
 local is_in_transition = false
+local on_level = -1
+local on_transition = -1
+local on_render_post_hud = -1
 
----@return boolean
-local function get_is_in_transition()
-  return is_in_transition
-end
-
-local function enable_mod()
-  is_enabled = true
-end
-
-local function disable_mod()
-  is_enabled = false
-end
-
-local ui = require("ui").using(get_is_enabled, get_is_in_transition)
-local input = require("input")
 local Pouch = require("Pouch")
+local input = require("input")
+local ui = require("ui").using(
+  function() return is_in_transition end)
 
 -- ==============================================================================
 
@@ -68,10 +50,22 @@ end
 ---@return boolean
 local function on_player_kill(self)
   self.user_data.pouch:spill(self.uid)
-  return false -- the default kill logic still runs
+  return false
 end
 
-local function initialize()
+local function handle_level()
+  is_in_transition = false
+  for _, player in ipairs(get_local_players()) do
+    player:set_pre_kill(on_player_kill)
+    input.register(player)
+  end
+end
+
+local function handle_transition()
+  is_in_transition = true
+end
+
+local function enable()
   for idx, player in ipairs(get_local_players()) do
     -- guard against other mods which use user_data
     if player.user_data == nil then
@@ -86,20 +80,19 @@ local function initialize()
     player.user_data.retrieval_option =
         options[string.format("player%i_retrieval_option", idx)]
   end
+
+  on_level = set_callback(handle_level, ON.LEVEL)
+  on_transition = set_callback(handle_transition, ON.TRANSITION)
+  on_render_post_hud = set_callback(ui.render, ON.RENDER_POST_HUD)
 end
 
-local function handle_level_start()
-  enable_mod()
-  is_in_transition = false
-  for _, player in ipairs(get_local_players()) do
-    player:set_pre_kill(on_player_kill)
-    input.register(player)
-  end
-end
-
-local function handle_transition()
-  enable_mod()
-  is_in_transition = true
+local function disable()
+  clear_callback(on_level)
+  clear_callback(on_transition)
+  clear_callback(on_render_post_hud)
+  on_level = -1
+  on_transition = -1
+  on_render_post_hud = -1
 end
 
 -- ==============================================================================
@@ -142,10 +135,6 @@ end
 set_callback(save_options, ON.SAVE)
 set_callback(load_options, ON.LOAD)
 
-set_callback(initialize, ON.START)
-set_callback(ui.render, ON.RENDER_POST_HUD)
-
-set_callback(handle_level_start, ON.LEVEL)
-set_callback(disable_mod, ON.MENU)
-set_callback(disable_mod, ON.DEATH)
-set_callback(handle_transition, ON.TRANSITION)
+set_callback(enable, ON.START)
+set_callback(disable, ON.MENU)
+set_callback(disable, ON.DEATH)
