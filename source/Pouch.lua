@@ -135,6 +135,10 @@ end
 local function is_storable(uid)
   local entity = get_entity(uid)
   local type = entity.type.id
+  ---@diagnostic disable-next-line undefined-field
+  if entity.get_short_name ~= nil then
+    return false --is player
+  end
   if STORABLE_ALWAYS[type] then
     return true
   end
