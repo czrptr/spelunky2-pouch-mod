@@ -56,6 +56,10 @@ local FLOATING_SLOT <const> = {
   BACKGROUND_ALPHA = 0.5,
 }
 
+function FLOATING_SLOT.total_width(slot_count)
+  return slot_count * FLOATING_SLOT.SIZE + (slot_count - 1) * (FLOATING_SLOT.MARGIN - FLOATING_SLOT.SIZE)
+end
+
 local POUCH <const> = (function()
   local TEXTURE_WIDTH = 251
   local TEXTURE_HEIGHT = 233
@@ -160,6 +164,7 @@ function ui.render_slots(render_context)
 
   for pdx, player in ipairs(get_local_players()) do
     local player_offset = SLOT.PLAYER_STRIDE * (pdx - 1)
+    local total_width = FLOATING_SLOT.total_width(#player.user_data.pouch.slots)
     for sdx = 1, player.user_data.pouch.max_size do
       local slot_offset = (SLOT.WIDTH + SLOT.MARGIN) * (sdx - 1)
       local base_x = SLOT.BASE_X + slot_offset + player_offset
@@ -172,10 +177,9 @@ function ui.render_slots(render_context)
 
         if player.user_data.is_retrieving then
           local bounds = bounds_from(
-            player.x - FLOATING_SLOT.SIZE / 2 + FLOATING_SLOT.MARGIN * (sdx - 1),
+            player.x - total_width / 2 + FLOATING_SLOT.MARGIN * (sdx - 1),
             player.y - FLOATING_SLOT.SIZE / 2 + FLOATING_SLOT.OFFSET,
             FLOATING_SLOT.SIZE, FLOATING_SLOT.SIZE)
-
           local zoom =
               (player.user_data.selected_slot == sdx)
               and FLOATING_SLOT.SELECTED_ZOOM or FLOATING_SLOT.ICON_ZOOM
