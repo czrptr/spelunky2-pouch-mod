@@ -8,5 +8,8 @@
   "[lua]": {
     "editor.formatOnSave": true,
     "editor.defaultFormatter": "sumneko.lua"
-  }
+  },
+  "Lua.diagnostics.disable": [
+    "redefined-local"
+  ]
 }

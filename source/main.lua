@@ -14,22 +14,20 @@ meta = {
 }
 
 local POUCH_SIZE <const> = {
+  DEFAULT = 2,
   MIN = 1,
   MAX = 7,
-  DEFAULT = 2,
 }
 
 -- ==============================================================================
 
-local is_in_transition = false
 local on_level = -1
 local on_transition = -1
 local on_render_post_hud = -1
 
 local Pouch = require("Pouch")
 local input = require("input")
-local ui = require("ui").using(
-  function() return is_in_transition end)
+local ui = require("ui")
 
 -- ==============================================================================
 
@@ -54,15 +52,18 @@ local function on_player_kill(self)
 end
 
 local function handle_level()
-  is_in_transition = false
   for _, player in ipairs(get_local_players()) do
     player:set_pre_kill(on_player_kill)
     input.register(player)
   end
+
+  clear_callback(on_render_post_hud)
+  on_render_post_hud = set_callback(ui.render_slots, ON.RENDER_POST_HUD)
 end
 
 local function handle_transition()
-  is_in_transition = true
+  clear_callback(on_render_post_hud)
+  on_render_post_hud = set_callback(ui.render_cards, ON.RENDER_POST_HUD)
 end
 
 local function enable()
@@ -83,7 +84,6 @@ local function enable()
 
   on_level = set_callback(handle_level, ON.LEVEL)
   on_transition = set_callback(handle_transition, ON.TRANSITION)
-  on_render_post_hud = set_callback(ui.render, ON.RENDER_POST_HUD)
 end
 
 local function disable()

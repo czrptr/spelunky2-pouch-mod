@@ -30,7 +30,7 @@ local SLOT <const> = (function()
   local TEXTURE_HEIGHT = 100
   local TEXTURE_ASPECT_RATIO = TEXTURE_WIDTH / TEXTURE_HEIGHT
   local WIDTH = 0.035
-  local ICON_ZOOM_X = 0.008
+  local ICON_ZOOM_X = 0.01
 
   return {
     BASE_X = -0.9625,
@@ -41,12 +41,20 @@ local SLOT <const> = (function()
     MARGIN = 0.0035,
     BACKGROUND_ALPHA = 0.35,
     ICON_ALPHA = 0.5,
-    SELECTED_ICON_ALPHA = 0.75,
-    ICON_ZOOM_X = ICON_ZOOM_X,
-    ICON_ZOOM_Y = ICON_ZOOM_X * ASPECT_RATIO,
+    ICON_ZOOM = Vec2:new(ICON_ZOOM_X, ICON_ZOOM_X * ASPECT_RATIO),
     TEXTURE = create_texture("assets/slot.png", TEXTURE_WIDTH, TEXTURE_HEIGHT),
   }
 end)()
+
+local FLOATING_SLOT <const> = {
+  SIZE = 0.5,
+  MARGIN = 0.6,
+  OFFSET = 0.7,
+  ICON_ZOOM = 0.05,
+  SELECTED_ZOOM = 0.2,
+  ICON_ALPHA = 0.75,
+  BACKGROUND_ALPHA = 0.5,
+}
 
 local POUCH <const> = (function()
   local TEXTURE_WIDTH = 251
@@ -68,16 +76,21 @@ local CANVAS <const> = (function()
   local TEXTURE_WIDTH = 313
   local TEXTURE_HEIGHT = 157
   local TEXTURE_ASPECT_RATIO = TEXTURE_WIDTH / TEXTURE_HEIGHT
-
   local WIDTH = 0.233
+  local ICON_ZOOM_X = -0.002
+  local SLOT_ZOOM_X = 0.015
 
   return {
     BASE_X = POUCH.BASE_X + 0.005,
     BASE_Y = POUCH.BASE_Y + 0.02,
     WIDTH = WIDTH,
+    ICON_ANGLE = -0.2,
     HEIGHT = screen_height(WIDTH, TEXTURE_ASPECT_RATIO),
+    ICON_ZOOM = Vec2:new(ICON_ZOOM_X, ICON_ZOOM_X * ASPECT_RATIO),
+    SLOT_ZOOM = Vec2:new(SLOT_ZOOM_X, SLOT_ZOOM_X * ASPECT_RATIO),
+    ICON_OFFSET = Vec2:new(-0.025, 0.01),
     TEXTURE = create_texture("assets/canvas.png", TEXTURE_WIDTH, TEXTURE_HEIGHT),
-    SLOT_POSITIONS = {
+    SLOT_OFFSET = {
       { X = 0.025, Y = 0.113 },
       { X = 0.075, Y = 0.028 },
       { X = 0.075, Y = 0.113 },
@@ -98,55 +111,77 @@ local function bounds_from(left, bottom, width, height)
   return AABB:new(left, bottom + height, left + width, bottom)
 end
 
+---@param render_context VanillaRenderContext
+---@param texture_id integer
+---@param bounds AABB
+---@param alpha number
+local function draw_screen_texture(render_context, texture_id, bounds, alpha)
+  render_context:draw_screen_texture(
+    texture_id, 0, 0, bounds, Color:new(1, 1, 1, alpha))
+end
+
+---@param render_context VanillaRenderContext
+---@param metadata Metadata
+---@param bounds AABB
+---@param alpha number
+---@param zoom Vec2
+local function draw_screen_metadata(render_context, metadata, bounds, alpha, zoom)
+  render_context:draw_screen_texture(
+    metadata.texture, metadata.sprite_row, metadata.sprite_column,
+    bounds:extrude(zoom.x, zoom.y), Color:new(1, 1, 1, alpha))
+end
+
+---@param render_context VanillaRenderContext
+---@param texture_id integer
+---@param bounds AABB
+---@param alpha number
+local function draw_world_texture(render_context, texture_id, bounds, alpha)
+  render_context:draw_world_texture(
+    texture_id, 0, 0, bounds, Color:new(1, 1, 1, alpha))
+end
+
+---@param render_context VanillaRenderContext
+---@param metadata Metadata
+---@param bounds AABB
+---@param alpha number
+---@param zoom number
+local function draw_world_metadata(render_context, metadata, bounds, alpha, zoom)
+  render_context:draw_world_texture(
+    metadata.texture, metadata.sprite_row, metadata.sprite_column,
+    bounds:extrude(zoom), Color:new(1, 1, 1, alpha))
+end
 -- ==============================================================================
 
 ---@param render_context VanillaRenderContext
-local function render_slots(render_context)
-  for idx, player in ipairs(get_local_players()) do
-    for jdx = 1, options.pouch_size do
-      local bounds = bounds_from(
-        SLOT.BASE_X
-        + (SLOT.WIDTH + SLOT.MARGIN) * (jdx - 1)
-        + SLOT.PLAYER_STRIDE * (idx - 1),
-        SLOT.BASE_Y,
-        SLOT.WIDTH,
-        SLOT.HEIGHT
-      )
-      render_context:draw_screen_texture(
-        SLOT.TEXTURE, 0, 0, bounds, Color:new(1, 1, 1, SLOT.BACKGROUND_ALPHA))
+function ui.render_slots(render_context)
+  if pause:get_pause() ~= PAUSE_TYPE.NONE then
+    return
+  end
 
-      local icon_alpha = SLOT.ICON_ALPHA
-      if player.user_data.is_retrieving and player.user_data.selected_slot == jdx then
-        local zoom = 0.008
-        icon_alpha = SLOT.SELECTED_ICON_ALPHA
-        bounds = bounds:extrude(zoom, zoom * ASPECT_RATIO)
-      end
+  for pdx, player in ipairs(get_local_players()) do
+    local player_offset = SLOT.PLAYER_STRIDE * (pdx - 1)
+    for sdx = 1, options.pouch_size do
+      local slot_offset = (SLOT.WIDTH + SLOT.MARGIN) * (sdx - 1)
+      local base_x = SLOT.BASE_X + slot_offset + player_offset
+      local bounds = bounds_from(base_x, SLOT.BASE_Y, SLOT.WIDTH, SLOT.HEIGHT)
+      draw_screen_texture(render_context, SLOT.TEXTURE, bounds, SLOT.BACKGROUND_ALPHA)
 
-      local metadata = player.user_data.pouch.slots[jdx]
+      local metadata = player.user_data.pouch.slots[sdx]
       if metadata ~= nil then
-        bounds = bounds:extrude(
-          SLOT.ICON_ZOOM_X, SLOT.ICON_ZOOM_Y)
-        render_context:draw_screen_texture(
-          metadata.texture, metadata.sprite_row, metadata.sprite_column,
-          bounds, Color:new(1, 1, 1, icon_alpha))
+        draw_screen_metadata(render_context, metadata, bounds, SLOT.ICON_ALPHA, SLOT.ICON_ZOOM)
 
         if player.user_data.is_retrieving then
-          local SIZE = 0.5
-          local OFFSET = 0.7
-          local MARGIN = 0.6
-          bounds = bounds_from(
-            player.x - SIZE / 2 + (jdx - 1) * MARGIN,
-            player.y - SIZE / 2 + OFFSET,
-            SIZE, SIZE)
-          render_context:draw_world_texture(
-            SLOT.TEXTURE, 0, 0, bounds, Color:new(1, 1, 1, 0.5))
+          local bounds = bounds_from(
+            player.x - FLOATING_SLOT.SIZE / 2 + FLOATING_SLOT.MARGIN * (sdx - 1),
+            player.y - FLOATING_SLOT.SIZE / 2 + FLOATING_SLOT.OFFSET,
+            FLOATING_SLOT.SIZE, FLOATING_SLOT.SIZE)
 
-          if player.user_data.selected_slot == jdx then
-            bounds = bounds:extrude(0.2)
-          end
+          local zoom =
+              (player.user_data.selected_slot == sdx)
+              and FLOATING_SLOT.SELECTED_ZOOM or FLOATING_SLOT.ICON_ZOOM
 
-          render_context:draw_world_texture(
-            metadata.texture, metadata.sprite_row, metadata.sprite_column, bounds, Color:new(1, 1, 1, 0.75))
+          draw_world_texture(render_context, SLOT.TEXTURE, bounds, FLOATING_SLOT.BACKGROUND_ALPHA)
+          draw_world_metadata(render_context, metadata, bounds, FLOATING_SLOT.ICON_ALPHA, zoom)
         end
       end
     end
@@ -154,68 +189,28 @@ local function render_slots(render_context)
 end
 
 ---@param render_context VanillaRenderContext
-local function render_cards(render_context)
-  for idx, player in ipairs(get_local_players()) do
-    local bounds = bounds_from(
-      CANVAS.BASE_X
-      + POUCH.PLAYER_STRIDE * (idx - 1),
-      CANVAS.BASE_Y,
-      CANVAS.WIDTH,
-      CANVAS.HEIGHT
-    )
-    render_context:draw_screen_texture(
-      CANVAS.TEXTURE, 0, 0, bounds, Color:white())
+function ui.render_cards(render_context)
+  for pdx, player in ipairs(get_local_players()) do
+    local player_offset = SLOT.PLAYER_STRIDE * (pdx - 1)
+    local bounds = bounds_from(CANVAS.BASE_X + player_offset, CANVAS.BASE_Y, CANVAS.WIDTH, CANVAS.HEIGHT)
+    draw_screen_texture(render_context, CANVAS.TEXTURE, bounds, 1)
 
-    bounds = bounds_from(
-      POUCH.BASE_X
-      + POUCH.PLAYER_STRIDE * (idx - 1),
-      POUCH.BASE_Y,
-      POUCH.WIDTH,
-      POUCH.HEIGHT
-    )
-    render_context:draw_screen_texture(
-      POUCH.TEXTURE, 0, 0, bounds, Color:white())
+    bounds = bounds_from(POUCH.BASE_X + player_offset, POUCH.BASE_Y, POUCH.WIDTH, POUCH.HEIGHT)
+    draw_screen_texture(render_context, POUCH.TEXTURE, bounds, 1)
 
-    local zoom = -0.002
-    bounds = bounds:extrude(zoom, zoom * ASPECT_RATIO):offset(-0.025, 0.01)
-    render_context:draw_screen_texture(
-      player:get_texture(), 9, 14, bounds, Color:white(), -0.2, 0, 0)
+    bounds = bounds:extrude(CANVAS.ICON_ZOOM.x, CANVAS.ICON_ZOOM.y):offset(CANVAS.ICON_OFFSET.x, CANVAS.ICON_OFFSET.y)
+    render_context:draw_screen_texture(player:get_texture(), 9, 14, bounds, Color:white(), CANVAS.ICON_ANGLE, 0, 0)
 
-    for jdx, metadata in ipairs(player.user_data.pouch.slots) do
+    for sdx, metadata in ipairs(player.user_data.pouch.slots) do
       bounds = bounds_from(
-        CANVAS.BASE_X
-        + POUCH.PLAYER_STRIDE * (idx - 1)
-        + CANVAS.SLOT_POSITIONS[jdx].X,
-        CANVAS.BASE_Y
-        + CANVAS.SLOT_POSITIONS[jdx].Y,
-        SLOT.WIDTH,
-        SLOT.HEIGHT
-      )
-      zoom = 0.015
-      bounds = bounds:extrude(zoom, zoom * ASPECT_RATIO)
-      render_context:draw_screen_texture(
-        metadata.texture, metadata.sprite_row, metadata.sprite_column, bounds, Color:white())
+        CANVAS.BASE_X + player_offset + CANVAS.SLOT_OFFSET[sdx].X,
+        CANVAS.BASE_Y + CANVAS.SLOT_OFFSET[sdx].Y,
+        SLOT.WIDTH, SLOT.HEIGHT)
+      draw_screen_metadata(render_context, metadata, bounds, 1, CANVAS.SLOT_ZOOM)
     end
   end
 end
 
 -- ==============================================================================
-
----@param get_is_in_transition fun(): boolean
-function ui.using(get_is_in_transition)
-  ---@param render_context VanillaRenderContext
-  local function render(render_context)
-    if get_is_in_transition() then
-      render_cards(render_context)
-    elseif pause:get_pause() == PAUSE_TYPE.NONE then
-      render_slots(render_context)
-    end
-  end
-
-  -- resulting module
-  return {
-    render = render
-  }
-end
 
 return ui
