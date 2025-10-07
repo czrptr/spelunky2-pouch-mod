@@ -38,30 +38,6 @@ local RETRIEVAL_OPTION <const> = {
 
 local BEHAVIOR_CLIMBING <const> = 6
 
----@class UserData
----@field pouch Pouch
----@field previous_input INPUTS
----@field is_retrieving boolean
----@field selected_slot integer
----@field retrieval_option RetrievalOption
-
----@class Player
----@field user_data UserData
-
----@class Options
----@field pouch_size integer
----@field idols_are_storable boolean
----@field pets_are_storable boolean
----@field mounts_are_storable boolean
----@field monsters_are_storable boolean
----@field player1_retrieval_option RetrievalOption
----@field player2_retrieval_option RetrievalOption
----@field player3_retrieval_option RetrievalOption
----@field player4_retrieval_option RetrievalOption
-
----@diagnostic disable-next-line unknown-cast-variable
----@cast options Options | any
-
 -- ==============================================================================
 
 ---@type boolean

@@ -1,10 +1,3 @@
-local Metadata = require("Metadata")
-
----@diagnostic disable-next-line unknown-cast-variable
----@cast options Options | any
-
--- ==============================================================================
-
 ---@alias StorableEntityMap table<ENT_TYPE, boolean>
 
 ---Items that can always be stored in the pouch
@@ -159,6 +152,8 @@ local function is_storable(uid)
   end
   return false
 end
+
+local Metadata = require("Metadata")
 
 -- ==============================================================================
 
