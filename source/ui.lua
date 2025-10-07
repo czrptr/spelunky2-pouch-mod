@@ -4,9 +4,9 @@ local ui = {}
 -- forced by the engine
 local ASPECT_RATIO <const> = 16 / 9
 
----@param texture_path string Path to texture file
----@param width integer Texture width in pixels
----@param height integer Texture height in pixels
+---@param texture_path string
+---@param width integer
+---@param height integer
 ---@return TEXTURE
 local function create_texture(texture_path, width, height)
   local texture_def = TextureDefinition.new()
@@ -18,9 +18,9 @@ local function create_texture(texture_path, width, height)
   return define_texture(texture_def)
 end
 
----@param width number Screen-space width
----@param texture_aspect_ratio number Width/height ratio of texture
----@return number height Screen-space height
+---@param width number
+---@param texture_aspect_ratio number
+---@return number
 local function screen_height(width, texture_aspect_ratio)
   return width / texture_aspect_ratio * ASPECT_RATIO
 end

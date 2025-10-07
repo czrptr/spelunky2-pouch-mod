@@ -104,9 +104,9 @@ local STORABLE_MOUNTS <const> = {
 }
 
 ---@class Sfx
----@field sound CustomSound Sound effect
----@field pitch number Pitch multiplier
----@field volume number Volume level
+---@field sound CustomSound
+---@field pitch number
+---@field volume number
 
 ---@type Sfx
 local STORE <const> = {
@@ -167,8 +167,8 @@ local Metadata = require("Metadata")
 local Pouch = {}
 Pouch.__index = Pouch
 
----@return Pouch
 ---@param max_size integer
+---@return Pouch
 function Pouch.init(max_size)
   return setmetatable({
     max_size = max_size,
@@ -250,5 +250,7 @@ function Pouch:rotate()
   local last_item = table.remove(self.slots, #self.slots)
   table.insert(self.slots, 1, last_item)
 end
+
+-- ==============================================================================
 
 return Pouch

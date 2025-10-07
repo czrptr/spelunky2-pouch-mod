@@ -27,7 +27,8 @@ function Metadata.init(uid)
     flags = get_entity(uid):get_metadata(),
     layer = entity.layer,
     animation_frame = entity.animation_frame,
-    health = (entity --[[@as Movable]]).health,
+    ---@diagnostic disable-next-line: undefined-field
+    health = entity.health,
     is_dead = test_flag(entity.flags, ENT_FLAG.DEAD),
     texture = texture,
     sprite_row = sprite_row,

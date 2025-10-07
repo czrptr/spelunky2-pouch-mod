@@ -1,7 +1,7 @@
 -- POUCH MOD
 --[[
 TODO:
-  - change capacity to starting capacity and add item that expands the capacity to item pools
+  - add item (through pools) that expands the capacity
   - horizontally center the transition cards
 ]]
 
@@ -12,13 +12,13 @@ meta = {
   author = "Quasar",
 }
 
+-- ==============================================================================
+
 local POUCH_SIZE <const> = {
   DEFAULT = 2,
   MIN = 1,
   MAX = 7,
 }
-
--- ==============================================================================
 
 local on_level = -1
 local on_transition = -1
