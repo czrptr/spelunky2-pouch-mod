@@ -3,6 +3,7 @@
 TODO:
   - change capacity to starting capacity and add item that expands the capacity to item pools
   - horizontally center the transition cards
+  - guard against invalid options
 ]]
 
 meta = {
@@ -12,8 +13,51 @@ meta = {
   author = "Quasar",
 }
 
-local CONFIG = require("config")
-local Pouch = require("Pouch")
+local POUCH_SIZE <const> = {
+  MIN = 1,
+  MAX = 7,
+  DEFAULT = 2,
+}
+
+local POUCH_INPUTS <const> = {
+  ON_GROUND = {
+    STORE_OR_RETRIEVE = INPUT_FLAG.UP,
+    ROTATE = INPUT_FLAG.DOWN,
+  },
+  WHILE_CLIMBING = {
+    STORE_OR_RETRIEVE = INPUT_FLAG.LEFT,
+    ROTATE = INPUT_FLAG.RIGHT,
+  },
+}
+
+---@enum RetrievalOption
+local RETRIEVAL_OPTION <const> = {
+  LAST_INSERTED = 1,
+  SELECTABLE = 2,
+}
+
+local BEHAVIOR_CLIMBING <const> = 6
+
+---@class UserData
+---@field pouch Pouch
+---@field previous_input INPUTS
+---@field is_retrieving boolean
+---@field selected_slot integer
+---@field retrieval_option RetrievalOption
+
+---@class Player
+---@field user_data UserData
+
+---@class Options
+---@field pouch_size integer
+---@field idols_are_storable boolean
+---@field pets_are_storable boolean
+---@field mounts_are_storable boolean
+---@field monsters_are_storable boolean
+---@field player1_retrieval_option RetrievalOption
+---@field player2_retrieval_option RetrievalOption
+---@field player3_retrieval_option RetrievalOption
+---@field player4_retrieval_option RetrievalOption
 
 ---@diagnostic disable-next-line unknown-cast-variable
 ---@cast options Options | any
@@ -45,6 +89,7 @@ local function disable_mod()
 end
 
 local ui = require("ui").using(get_is_enabled, get_is_in_transition)
+local Pouch = require("Pouch")
 
 -- ==============================================================================
 
@@ -71,14 +116,13 @@ local function can_enter_a_door(player)
 end
 
 ---@param player Player
----@return OnGround | WhileClimbing, boolean, INPUTS, INPUTS
 local function get_input_context(player)
-  local modal_inputs =
-      (player:get_behavior() == CONFIG.BEHAVIOR.PLAYER.CLIMBING)
-      and CONFIG.INPUTS.WHILE_CLIMBING
-      or CONFIG.INPUTS.ON_GROUND
+  local MODAL_INPUTS =
+      (player:get_behavior() == BEHAVIOR_CLIMBING)
+      and POUCH_INPUTS.WHILE_CLIMBING
+      or POUCH_INPUTS.ON_GROUND
 
-  return modal_inputs, (not can_enter_a_door(player)), player.input.buttons, player.user_data.previous_input
+  return MODAL_INPUTS, (not can_enter_a_door(player)), player.input.buttons, player.user_data.previous_input
 end
 
 -- ==============================================================================
@@ -194,7 +238,7 @@ local function handle_level_start()
   is_in_transition = false
   for _, player in ipairs(get_local_players()) do
     player:set_pre_kill(on_player_kill)
-    if player.user_data.retrieval_option == CONFIG.RETRIEVAL_OPTION.LAST_INSERTED then
+    if player.user_data.retrieval_option == RETRIEVAL_OPTION.LAST_INSERTED then
       player:set_pre_process_input(on_player_last_inserted_pre_process_input)
     else
       player:set_pre_process_input(on_player_selectable_pre_process_input)
@@ -212,62 +256,37 @@ end
 register_option_int(
   "pouch_size",
   "Pouch capacity",
-  CONFIG.POUCH.DEFAULT_CAPACITY,
-  CONFIG.POUCH.MIN_CAPACITY,
-  CONFIG.POUCH.MAX_CAPACITY
-)
+  POUCH_SIZE.DEFAULT,
+  POUCH_SIZE.MIN,
+  POUCH_SIZE.MAX)
 
 register_option_bool(
   "idols_are_storable",
   "Idols can be stored",
-  false
-)
+  false)
 
 register_option_bool(
   "pets_are_storable",
   "Pets can be stored",
-  false
-)
+  false)
 
 register_option_bool(
   "mounts_are_storable",
   "Mounts can be stored after they are tamed",
-  false
-)
+  false)
 
 register_option_bool(
   "monsters_are_storable",
   "Monsters can be stored after they are killed",
-  true
-)
+  true)
 
-register_option_combo(
-  "player1_retrieval_option",
-  "Player 1 item retrieval",
-  "Last inserted\0Selectable\0\0",
-  1
-)
-
-register_option_combo(
-  "player2_retrieval_option",
-  "Player 2 item retrieval",
-  "Last inserted\0Selectable\0\0",
-  1
-)
-
-register_option_combo(
-  "player3_retrieval_option",
-  "Player 3 item retrieval",
-  "Last inserted\0Selectable\0\0",
-  1
-)
-
-register_option_combo(
-  "player4_retrieval_option",
-  "Player 4 item retrieval",
-  "Last inserted\0Selectable\0\0",
-  1
-)
+for idx = 1, 4 do
+  register_option_combo(
+    string.format("player%i_retrieval_option", idx),
+    string.format("Player %i item retrieval", idx),
+    "Last inserted\0Selectable\0\0",
+    RETRIEVAL_OPTION.LAST_INSERTED)
+end
 
 set_callback(save_options, ON.SAVE)
 set_callback(load_options, ON.LOAD)

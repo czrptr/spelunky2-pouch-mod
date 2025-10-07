@@ -1,4 +1,3 @@
-local CONFIG = require("config")
 local Metadata = require("Metadata")
 
 ---@diagnostic disable-next-line unknown-cast-variable
