@@ -3,7 +3,6 @@
 TODO:
   - change capacity to starting capacity and add item that expands the capacity to item pools
   - horizontally center the transition cards
-  - guard against invalid options
 ]]
 
 meta = {
@@ -67,6 +66,9 @@ local function handle_transition()
 end
 
 local function enable()
+  --guard against invalid user options
+  options.pouch_size = math.min(POUCH_SIZE.MAX, math.max(POUCH_SIZE.MIN, options.pouch_size))
+
   for idx, player in ipairs(get_local_players()) do
     -- guard against other mods which use user_data
     if player.user_data == nil then
@@ -74,7 +76,7 @@ local function enable()
       player.user_data = {}
     end
 
-    player.user_data.pouch = Pouch.init()
+    player.user_data.pouch = Pouch.init(options.pouch_size)
     player.user_data.previous_input = INPUTS.RUN
     player.user_data.is_retrieving = false
     player.user_data.selected_slot = 1

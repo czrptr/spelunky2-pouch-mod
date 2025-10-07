@@ -158,21 +158,24 @@ local Metadata = require("Metadata")
 -- ==============================================================================
 
 ---@class Pouch
+---@field max_size integer
 ---@field slots Metadata[]
 local Pouch = {}
 Pouch.__index = Pouch
 
 ---@return Pouch
-function Pouch.init()
+---@param max_size integer
+function Pouch.init(max_size)
   return setmetatable({
-    slots = {}
+    max_size = max_size,
+    slots = {},
   }, Pouch)
 end
 
 ---@param player_uid integer
 ---@param held_uid integer
 function Pouch:store(player_uid, held_uid)
-  if #self.slots >= options.pouch_size or not is_storable(held_uid) then
+  if #self.slots >= self.max_size or not is_storable(held_uid) then
     play_sfx(INVALID)
     return
   end

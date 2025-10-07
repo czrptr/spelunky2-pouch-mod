@@ -160,7 +160,7 @@ function ui.render_slots(render_context)
 
   for pdx, player in ipairs(get_local_players()) do
     local player_offset = SLOT.PLAYER_STRIDE * (pdx - 1)
-    for sdx = 1, options.pouch_size do
+    for sdx = 1, player.user_data.pouch.max_size do
       local slot_offset = (SLOT.WIDTH + SLOT.MARGIN) * (sdx - 1)
       local base_x = SLOT.BASE_X + slot_offset + player_offset
       local bounds = bounds_from(base_x, SLOT.BASE_Y, SLOT.WIDTH, SLOT.HEIGHT)
