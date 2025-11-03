@@ -99,6 +99,7 @@ local function on_spawn(player)
   -- wait one frame so that on_spawn callback return and get_player_index()
   -- can access an updated list of players
   set_timeout(function()
+    -- TODO: use player.inventory.player_slot
     local retrieval_option = options[string.format("player%i_retrieval_option", get_player_index(player))]
     input.register(player, retrieval_option)
   end, 1)
