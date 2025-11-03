@@ -124,8 +124,9 @@ input.RETRIEVAL_OPTION = {
 }
 
 ---@param player Player
-function input.register(player)
-  if player.user_data.retrieval_option == input.RETRIEVAL_OPTION.LAST_INSERTED then
+---@param retrieval_option RetrievalOption
+function input.register(player, retrieval_option)
+  if retrieval_option == input.RETRIEVAL_OPTION.LAST_INSERTED then
     player:set_pre_process_input(on_player_last_inserted)
   else
     player:set_pre_process_input(on_player_selectable)
