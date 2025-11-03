@@ -50,6 +50,10 @@ The "Pouch" mod introduces a portable item-storage system, allowing players to t
 
 ## Changelog
 
+### 2.1
+- **Fixed:**
+  - Functionality didn't work for players who died and respawned
+
 ### 2.0
 - **Added:**
   - Total internal rework and cleanup
