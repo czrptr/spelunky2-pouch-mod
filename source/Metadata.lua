@@ -1,7 +1,6 @@
 ---@class Metadata
 ---@field type ENT_TYPE
 ---@field flags integer
----@field layer LAYER
 ---@field animation_frame integer
 ---@field health integer?
 ---@field is_dead boolean
@@ -25,7 +24,6 @@ function Metadata.init(uid)
   return setmetatable({
     type = entity.type.id,
     flags = get_entity(uid):get_metadata(),
-    layer = entity.layer,
     animation_frame = entity.animation_frame,
     ---@diagnostic disable-next-line: undefined-field
     health = entity.health,
@@ -36,9 +34,10 @@ function Metadata.init(uid)
   }, Metadata)
 end
 
+---@param layer LAYER
 ---@return integer
-function Metadata:spawn()
-  local entity_uid = spawn_entity(self.type, 0, 0, self.layer, 0, 0)
+function Metadata:spawn(layer)
+  local entity_uid = spawn_entity(self.type, 0, 0, layer, 0, 0)
   local entity = get_entity(entity_uid)
   entity:apply_metadata(self.flags)
   entity.animation_frame = self.animation_frame
