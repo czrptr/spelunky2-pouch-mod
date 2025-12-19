@@ -24,13 +24,6 @@ local on_level = -1
 local on_transition = -1
 local on_render_post_hud = -1
 
----@param entity Entity
----@return boolean
-local function is_player(entity)
-  ---@diagnostic disable-next-line undefined-field
-  return entity ~= nil and entity.get_short_name ~= nil
-end
-
 ---@param entity Player
 ---@return integer
 local function get_player_index(entity)
@@ -42,6 +35,7 @@ local function get_player_index(entity)
   return -1
 end
 
+local Metadata = require("Metadata")
 local Pouch = require("Pouch")
 local input = require("input")
 local ui = require("ui")
@@ -78,12 +72,8 @@ local function handle_transition()
   on_render_post_hud = set_callback(ui.render_cards, ON.RENDER_POST_HUD)
 end
 
----@param player Entity
-local function on_spawn(player)
-  if not is_player(player) then
-    return
-  end
-  ---@cast player Player
+---@param player Player
+local function on_spawn_player(player)
   -- guard against other mods which use user_data
   if player.user_data == nil then
     ---@diagnostic disable-next-line: missing-fields
@@ -103,6 +93,33 @@ local function on_spawn(player)
     local retrieval_option = options[string.format("player%i_retrieval_option", get_player_index(player))]
     input.register(player, retrieval_option)
   end, 1)
+end
+
+---@param backpack Backpack
+local function on_spawn_backpack(backpack)
+  backpack:set_post_putting_off(function(_, holder)
+    if not Metadata.is_player(holder) then
+      return false
+    end
+
+    ---@cast holder Player
+    local _, _, layer = get_position(holder.uid)
+    local clone_uid = Metadata.init(backpack.uid):spawn(layer)
+    pick_up(holder.uid, clone_uid)
+    backpack:destroy()
+    return false
+  end)
+end
+
+---@param entity Entity
+local function on_spawn(entity)
+  if Metadata.is_player(entity) then
+    ---@cast entity Player
+    on_spawn_player(entity)
+  elseif Metadata.is_backpack(entity) then
+    ---@cast entity Backpack
+    on_spawn_backpack(entity)
+  end
 end
 
 local function enable()

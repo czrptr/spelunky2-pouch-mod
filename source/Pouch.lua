@@ -253,6 +253,11 @@ function Pouch:retrieve(player_uid, slot_index)
   local held_uid = table.remove(self.slots, slot_index):spawn(layer)
   pick_up(player_uid, held_uid)
 
+  if Metadata.is_backpack(get_entity(held_uid)) then
+    -- skip the rendering order fix for backpacks
+    return
+  end
+
   -- Immediate drop/re-pickup on next frame
   -- This is needed because otherwise some entities
   -- will render behind the player when picked up

@@ -34,6 +34,20 @@ function Metadata.init(uid)
   }, Metadata)
 end
 
+---@param entity Entity
+---@return boolean
+function Metadata.is_player(entity)
+  ---@diagnostic disable-next-line undefined-field
+  return entity ~= nil and entity.get_short_name ~= nil
+end
+
+---@param entity Entity
+---@return boolean
+function Metadata.is_backpack(entity)
+  ---@diagnostic disable-next-line undefined-field
+  return entity ~= nil and entity.explosion_trigger ~= nil
+end
+
 ---@param layer LAYER
 ---@return integer
 function Metadata:spawn(layer)
