@@ -214,13 +214,12 @@ end
 ---@param player_uid integer
 ---@param held_uid integer
 function Pouch:store(player_uid, held_uid)
-  if #self.slots >= self.max_size or not is_storable(held_uid) then
+  if not is_storable(held_uid) then
     play_sfx(INVALID)
     return
   end
 
-  table.insert(self.slots, 1, Metadata.init(held_uid))
-
+  local metadata = Metadata.init(held_uid)
   -- create pickup visual effect
   generate_particles(PARTICLEEMITTER.ITEMDUST, held_uid)
 
@@ -229,6 +228,11 @@ function Pouch:store(player_uid, held_uid)
 
   drop(player_uid, held_uid)
   get_entity(held_uid):destroy()
+
+  if #self.slots >= self.max_size then
+    self:retrieve(player_uid)
+  end
+  table.insert(self.slots, 1, metadata)
 end
 
 function Pouch:can_retrieve()
