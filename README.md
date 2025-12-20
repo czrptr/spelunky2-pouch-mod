@@ -40,6 +40,7 @@ The "Pouch" mod introduces a portable item-storage system, allowing players to t
   - Item retrieval method (default: "Last Inserted"; other option: "Selectable"; per player)
 
 ### Planned
+- Une left trigger and shoulder buttons as inputs on controllers (unused in the base game)
 - **Online multiplayer support** (compatibility untested; let me know if it works)
 - Scalable pouch capacity via in-game items rather than a fixed maximum
 - Modded item support (requires changes to the [Custom Entities Library](https://spelunky.fyi/mods/m/custom-entities-library/))
@@ -49,6 +50,14 @@ The "Pouch" mod introduces a portable item-storage system, allowing players to t
 - Storing live monsters, NPCs, or other players
 
 ## Changelog
+
+### 2.2
+- **Added:**
+  - Storing an item when while the pouch is full will swap the held item with the first item currently stored
+  - Shop items can be stored
+  - When unequipping a cape or pack the item will be placed into the players hand (so that they can store it if they want to)
+- **Fixed:**
+  - Items behaved weirdly when stored and retrieved between layers
 
 ### 2.1
 - **Fixed:**
