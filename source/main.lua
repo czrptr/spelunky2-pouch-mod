@@ -24,17 +24,6 @@ local on_level = -1
 local on_transition = -1
 local on_render_post_hud = -1
 
----@param entity Player
----@return integer
-local function get_player_index(entity)
-  for idx, player in ipairs(get_local_players()) do
-    if entity.uid == player.uid then
-      return idx
-    end
-  end
-  return -1
-end
-
 local RETRIEVAL_OPTION = require("RetrievalOption")
 local Metadata = require("Metadata")
 local Pouch = require("Pouch")
@@ -87,11 +76,9 @@ local function on_spawn_player(player)
   player.user_data.selected_slot = 1
   player:set_pre_kill(on_player_kill)
 
-  -- wait one frame so that on_spawn callback return and get_player_index()
-  -- can access an updated list of players
+  -- wait one frame so that on_spawn callback returns and input has time to be set
   set_timeout(function()
-    -- TODO: use player.inventory.player_slot
-    local retrieval_option = options[string.format("player%i_retrieval_option", get_player_index(player))]
+    local retrieval_option = options[string.format("player%i_retrieval_option", player.input.player_slot)]
     input.register(player, retrieval_option)
   end, 1)
 end
