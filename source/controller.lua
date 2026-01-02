@@ -17,10 +17,19 @@ end
 local function get_input(player)
   local player_index = player.input.player_slot
   local input_index = game_manager.game_props.input_index[player_index]
-  local current_input = get_raw_input().controller[input_index].buttons
+  local current_input = get_raw_input()
+  if current_input == nil then
+    return
+        { pressed = false, down = false },
+        { pressed = false, down = false },
+        player.input.buttons,
+        player.user_data.previous_input
+  end
+
+  local controller = current_input.controller[input_index].buttons
   return
-      current_input[RAW_BUTTON.LEFT_TRIGGER],
-      current_input[RAW_BUTTON.LEFT_SHOULDER],
+      controller[RAW_BUTTON.LEFT_TRIGGER],
+      controller[RAW_BUTTON.LEFT_SHOULDER],
       player.input.buttons,
       player.user_data.previous_input
 end

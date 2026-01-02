@@ -8,6 +8,9 @@ local controller = require("controller")
 local function player_is_keyboard_controlled(player)
   local player_index = player.input.player_slot
   local input_index = game_manager.game_props.input_index[player_index]
+  if input_index == nil then
+    return true
+  end
   return input_index >= 0 and input_index <= 3
 end
 
