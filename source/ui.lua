@@ -162,7 +162,11 @@ function ui.render_slots(render_context)
     return
   end
 
-  for pdx, player in ipairs(get_local_players()) do
+  for _, player in ipairs(get_local_players()) do
+    if player.health <= 0 then
+      goto continue
+    end
+    local pdx = player.input.player_slot
     local player_offset = SLOT.PLAYER_STRIDE * (pdx - 1)
     local total_width = FLOATING_SLOT.total_width(#player.user_data.pouch.slots)
     for sdx = 1, player.user_data.pouch.max_size do
@@ -189,6 +193,7 @@ function ui.render_slots(render_context)
         end
       end
     end
+    ::continue::
   end
 end
 
