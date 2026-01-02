@@ -98,7 +98,9 @@ end
 ---@param backpack Backpack
 local function on_spawn_backpack(backpack)
   backpack:set_post_putting_off(function(_, holder)
-    if not Metadata.is_player(holder) or holder.health <= 0 then
+    if not Metadata.is_player(holder)
+        or holder.health <= 0
+        or holder.holding_uid ~= -1 then
       return false
     end
 
