@@ -5,7 +5,26 @@ The "Pouch" mod introduces a portable item-storage system, allowing players to t
 
 ## Input Map
 
-### Last Inserted Mode
+### Controller
+
+#### Last Inserted Mode
+| Action             | Input                |
+|--------------------|----------------------|
+| Retrieve or store  | **LEFT TRIGGER**     |
+| Rotate contents    | **LEFT SHOULDER**    |
+
+#### Selectable Mode
+| Action                 | Condition      | Input                    |
+|------------------------|----------------|--------------------------|
+| Retrieve menu          | N/A            | hold **LEFT TRIGGER**    |
+| Rotate contents        | N/A            | **LEFT SHOULDER**        |
+| Navigate slots         | Retrieve menu  | **LEFT** / **RIGHT**     |
+| Confirm retrieval      | Retrieve menu  | release **LEFT TRIGGER** |
+| Cancel selection       | Retrieve menu  | **DOWN**                 |
+
+### Keyboard
+
+#### Last Inserted Mode
 | Action             | Condition       | Input                |
 |--------------------|-----------------|----------------------|
 | Retrieve or store  | On ground       | **UP** + **DOOR**    |
@@ -13,7 +32,7 @@ The "Pouch" mod introduces a portable item-storage system, allowing players to t
 | Rotate contents    | On ground       | **RIGHT** + **DOOR** |
 | Rotate contents    | While climbing  | **DOWN** + **DOOR**  |
 
-### Selectable Mode
+#### Selectable Mode
 | Action                 | Condition      | Input                |
 |------------------------|----------------|----------------------|
 | Retrieve menu or store | On ground      | **UP** + **DOOR**    |
@@ -40,7 +59,6 @@ The "Pouch" mod introduces a portable item-storage system, allowing players to t
   - Item retrieval method (default: "Last Inserted"; other option: "Selectable"; per player)
 
 ### Planned
-- Une left trigger and shoulder buttons as inputs on controllers (unused in the base game)
 - **Online multiplayer support** (compatibility untested; let me know if it works)
 - Scalable pouch capacity via in-game items rather than a fixed maximum
 - Modded item support (requires changes to the [Custom Entities Library](https://spelunky.fyi/mods/m/custom-entities-library/))
@@ -50,6 +68,15 @@ The "Pouch" mod introduces a portable item-storage system, allowing players to t
 - Storing live monsters, NPCs, or other players
 
 ## Changelog
+
+### 2.3
+- **Added:**
+  - Controllers now use a different input scheme, see description for more details
+- **Fixed:**
+  - Player corpses held onto equipped capes or packs
+  - Players would retain capes or packs between deaths in the same run
+  - Retrieving items while lying down would make the player hold two items at once (one of which would be bugged) if they had a cape or pack equipped
+  - In multiplayer, the slots HUD would shift to the left if not all players were alive when entering a new stage
 
 ### 2.2
 - **Added:**
@@ -100,3 +127,4 @@ The "Pouch" mod introduces a portable item-storage system, allowing players to t
 
 ## Contributions
 I welcome feedback, feature requests, and bug reports!
+If you play on keyboard and have a proposal to map the inputs to different keys, please give a suggestion in the comments!
