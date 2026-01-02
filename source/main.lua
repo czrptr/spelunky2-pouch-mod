@@ -35,6 +35,7 @@ local function get_player_index(entity)
   return -1
 end
 
+local RETRIEVAL_OPTION = require("RetrievalOption")
 local Metadata = require("Metadata")
 local Pouch = require("Pouch")
 local input = require("input")
@@ -174,7 +175,7 @@ for idx = 1, 4 do
     string.format("player%i_retrieval_option", idx),
     string.format("Player %i item retrieval", idx),
     "Last inserted\0Selectable\0\0",
-    input.RETRIEVAL_OPTION.LAST_INSERTED)
+    RETRIEVAL_OPTION.LAST_INSERTED)
 end
 
 set_callback(save_options, ON.SAVE)
