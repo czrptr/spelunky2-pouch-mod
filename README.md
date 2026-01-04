@@ -77,70 +77,70 @@ The "Pouch" mod introduces a portable item-storage system, allowing players to t
 ## Changelog
 
 ### 2.4
-- **Added:**
+- **Added**
   - Selectable retrieve mode is now default
   - Configuration option for the time window for short presses
   - On controllers: Selectable retrieve mode now acts like Last Inserted mode on short button presses
   - Selectable mode: menu won't open while the player is jumping, falling, flying or gliding to preved accidental falls
   - An error sound is no longer played when attempting to retrieve from an empty pouch
-- **Fixed:**
+- **Fixed**
   - Pouches worked while in the camp which was not inteded
   - Error messages due to internal bugs
 
 ### 2.3
-- **Added:**
+- **Added**
   - Controllers now use a different input scheme, see description for more details
-- **Fixed:**
+- **Fixed**
   - Player corpses held onto equipped capes or packs
   - Players would retain capes or packs between deaths in the same run
   - Retrieving items while lying down would make the player hold two items at once (one of which would be bugged) if they had a cape or pack equipped
   - In multiplayer, the slots HUD would shift to the left if not all players were alive when entering a new stage
 
 ### 2.2
-- **Added:**
+- **Added**
   - Storing an item when while the pouch is full will swap the held item with the first item currently stored
   - Shop items can be stored
   - When unequipping a cape or pack the item will be placed into the players hand (so that they can store it if they want to)
-- **Fixed:**
+- **Fixed**
   - Items behaved weirdly when stored and retrieved between layers
 
 ### 2.1
-- **Fixed:**
+- **Fixed**
   - Functionality didn't work for players who died and respawned
 
 ### 2.0
-- **Added:**
+- **Added**
   - Total internal rework and cleanup
   - Player corpses cannot be stored
   - When retrieving, highlight the slots above the player character
   - Guard against invalid user options (e.g. setting the capacity to something greater than the maximum allowed)
-- **Fixed:**
+- **Fixed**
   - Screen shaking when storing a container (e.g. crate) that contains bombs
   - When using "Selectable" retrieval, trying to select the previous slot would select the next slot
 
 ### 1.2
-- **Added:**
+- **Added**
   - "Selectable" retrieve method: choose the slot you want to retrieve from
   - Sound effect when a pouch action is impossible (e.g., retrieving when empty, storing when full)
-- **Fixed:**
+- **Fixed**
   - Crash caused by accidental retrieval prevention check
 
 ### 1.1
-- **Added:**
+- **Added**
   - Separate climbing inputs for better gameplay flow. Use LEFT/RIGHT instead of UP/DOWN when climbing to prevent movement.
   - Item rotation: shift the last item to the first slot (see Input Map)
-- **Fixed:**
+- **Fixed**
   - Accidental retrieval when passing through doors
   - Mole corpses falling through floors after retrieval
   - Monsters appearing behind the player after retrieval
 
 ### 1.0
-- **Added:**
+- **Added**
   - Core pouch system: store/retrieve with UP + DOOR
   - Death behavior: items drop from pouch
   - Configuration options for capacity and allowed items
   - UI: slot grid overlay and transition panel
-- **Fixed:**
+- **Fixed**
   - Accidental retrieval when passing through level exit doors
 
 ## Contributions
