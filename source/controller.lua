@@ -5,6 +5,17 @@ local RETRIEVAL_OPTION = require("RetrievalOption")
 
 -- ==============================================================================
 
+-- TODO: allow menuing when gliding and preserve gliding state
+
+local BEHAVIOR_AIRBORNE <const> = 0
+local BEHAVIOR_JUMPING <const> = 8
+local BEHAVIOR_FALLING <const> = 9
+local RISKY_BEHAVIORS <const> = {
+  BEHAVIOR_AIRBORNE,
+  BEHAVIOR_JUMPING,
+  BEHAVIOR_FALLING,
+}
+
 ---@param current_input INPUTS
 ---@param previous_input INPUTS
 ---@param input_flag INPUT_FLAG
@@ -54,6 +65,14 @@ end
 ---@return boolean
 local function on_player_selectable(self)
   local l_trigger, l_shoulder, current_input, previous_input = get_input(self)
+  local behavior = self:get_behavior()
+  local safe_to_menu = true
+  for _, risky_behavior in ipairs(RISKY_BEHAVIORS) do
+    if behavior == risky_behavior then
+      safe_to_menu = false
+      break
+    end
+  end
 
   if l_shoulder.pressed then
     self.user_data.pouch:rotate()
@@ -82,13 +101,13 @@ local function on_player_selectable(self)
     -- HELD DOWN: Check if we should switch to menu mode
 
     -- If timer has expired, switch to menu mode
-    if self.user_data.quick_action_timer <= 0 then
+    if self.user_data.quick_action_timer <= 0 and safe_to_menu then
       self.user_data.waiting_for_release = false
       self.user_data.is_retrieving = true
       self.user_data.selected_slot = 1
-      input_captured = true
+      input_captured = false
     end
-  elseif l_trigger.down and self.user_data.is_retrieving then
+  elseif l_trigger.down and self.user_data.is_retrieving and safe_to_menu then
     -- HELD DOWN: Menu navigation
 
     if was_just_pressed(current_input, previous_input, INPUT_FLAG.RIGHT) then
@@ -141,7 +160,7 @@ local function on_player_selectable(self)
       self.user_data.is_retrieving = false
       self.user_data.wants_to_store = false
       self.user_data.waiting_for_release = false
-      input_captured = true
+      input_captured = false
     end
   end
 
