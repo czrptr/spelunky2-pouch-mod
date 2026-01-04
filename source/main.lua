@@ -103,6 +103,10 @@ end
 
 ---@param entity Entity
 local function on_spawn(entity)
+  if state.screen_next ~= SCREEN.LEVEL then
+    return
+  end
+
   if Metadata.is_player(entity) then
     ---@cast entity Player
     on_spawn_player(entity)
