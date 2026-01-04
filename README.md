@@ -8,29 +8,30 @@ The "Pouch" mod introduces a portable item-storage system, allowing players to t
 ### Controller
 
 #### Last Inserted Mode
-| Action             | Input                |
-|--------------------|----------------------|
-| Retrieve or store  | **LEFT TRIGGER**     |
-| Rotate contents    | **LEFT SHOULDER**    |
+| Action            | Input             |
+|-------------------|-------------------|
+| Retrieve or store | **LEFT TRIGGER**  |
+| Rotate contents   | **LEFT SHOULDER** |
 
 #### Selectable Mode
-| Action                 | Condition      | Input                    |
-|------------------------|----------------|--------------------------|
-| Retrieve menu          | N/A            | hold **LEFT TRIGGER**    |
-| Rotate contents        | N/A            | **LEFT SHOULDER**        |
-| Navigate slots         | Retrieve menu  | **LEFT** / **RIGHT**     |
-| Confirm retrieval      | Retrieve menu  | release **LEFT TRIGGER** |
-| Cancel selection       | Retrieve menu  | **DOWN**                 |
+| Action                  | Condition     | Input                    |
+|-------------------------|---------------|--------------------------|
+| Quick retrieve or store | N/A           | press **LEFT TRIGGER**   |
+| Retrieve menu           | N/A           | hold **LEFT TRIGGER**    |
+| Rotate contents         | N/A           | **LEFT SHOULDER**        |
+| Navigate slots          | Retrieve menu | **LEFT** / **RIGHT**     |
+| Confirm retrieval       | Retrieve menu | release **LEFT TRIGGER** |
+| Cancel selection        | Retrieve menu | **DOWN**                 |
 
 ### Keyboard
 
 #### Last Inserted Mode
-| Action             | Condition       | Input                |
-|--------------------|-----------------|----------------------|
-| Retrieve or store  | On ground       | **UP** + **DOOR**    |
-| Retrieve or store  | While climbing  | **LEFT** + **DOOR**  |
-| Rotate contents    | On ground       | **RIGHT** + **DOOR** |
-| Rotate contents    | While climbing  | **DOWN** + **DOOR**  |
+| Action            | Condition      | Input                |
+|-------------------|----------------|----------------------|
+| Retrieve or store | On ground      | **UP** + **DOOR**    |
+| Retrieve or store | While climbing | **LEFT** + **DOOR**  |
+| Rotate contents   | On ground      | **RIGHT** + **DOOR** |
+| Rotate contents   | While climbing | **DOWN** + **DOOR**  |
 
 #### Selectable Mode
 | Action                 | Condition      | Input                |
@@ -46,8 +47,13 @@ The "Pouch" mod introduces a portable item-storage system, allowing players to t
 ## Features
 - Store the currently held item into your pouch
 - Retrieve items from your pouch
-  - **Last Inserted mode:** retrieve the item that was inserted last (last-in, first-out)
-  - **Selectable mode:** choose which slot you want to retrieve from
+  - **Selectable mode**
+    - choose which slot you want to retrieve from
+    - quick button presses behave like **Last Inserted mode** (on controllers only)
+    - recommended for controllers
+  - **Last Inserted mode**
+    - retrieve the item that was inserted last (last-in, first-out)
+    - recommended for keyboards
 - Rotate pouch contents, moving the last item to the first slot
 - All pouch items drop on the ground upon death
 - Configurable options:
@@ -56,7 +62,8 @@ The "Pouch" mod introduces a portable item-storage system, allowing players to t
   - Allow storing pets (default: false)
   - Allow storing tamed mounts (default: false)
   - Allow storing dead monsters (default: true, includes pets and mounts)
-  - Item retrieval method (default: "Last Inserted"; other option: "Selectable"; per player)
+  - Item retrieval mode (default: "Selectable"; other option: "Last Inserted"; per player)
+  - Frame window for quick stores and retrieves (default: 10, min: 1, max 60)
 
 ### Planned
 - **Online multiplayer support** (compatibility untested; let me know if it works)
@@ -68,6 +75,17 @@ The "Pouch" mod introduces a portable item-storage system, allowing players to t
 - Storing live monsters, NPCs, or other players
 
 ## Changelog
+
+### 2.4
+- **Added:**
+  - Selectable retrieve mode is now default
+  - Configuration option for the time window for short presses
+  - On controllers: Selectable retrieve mode now acts like Last Inserted mode on short button presses
+  - Selectable mode: menu won't open while the player is jumping, falling, flying or gliding to preved accidental falls
+  - An error sound is no longer played when attempting to retrieve from an empty pouch
+- **Fixed:**
+  - Pouches worked while in the camp which was not inteded
+  - Error messages due to internal bugs
 
 ### 2.3
 - **Added:**
