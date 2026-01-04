@@ -236,12 +236,7 @@ function Pouch:store(player_uid, held_uid)
 end
 
 function Pouch:can_retrieve()
-  if #self.slots == 0 then
-    -- play sound effect
-    play_sfx(INVALID)
-    return false
-  end
-  return true
+  return #self.slots ~= 0
 end
 
 ---@param player_uid integer
