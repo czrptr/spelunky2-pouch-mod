@@ -20,6 +20,8 @@ local POUCH_SIZE <const> = {
   MAX = 7,
 }
 
+local DEFAULT_QUICK_ACTION_INTERVAL = 10
+
 local on_level = -1
 local on_transition = -1
 local on_render_post_hud = -1
@@ -74,6 +76,9 @@ local function on_spawn_player(player)
   player.user_data.previous_input = INPUTS.RUN
   player.user_data.is_retrieving = false
   player.user_data.selected_slot = 1
+  player.user_data.quick_action_timer = options.quick_action_interval
+  player.user_data.wants_to_store = false
+  player.user_data.waiting_for_release = false
   player:set_pre_kill(on_player_kill)
 
   -- wait one frame so that on_spawn callback returns and input has time to be set
@@ -168,6 +173,13 @@ for idx = 1, 4 do
     "Last inserted\0Selectable\0\0",
     RETRIEVAL_OPTION.LAST_INSERTED)
 end
+
+register_option_int(
+  "quick_action_interval",
+  "Frame window for quick stores and retrieves",
+  DEFAULT_QUICK_ACTION_INTERVAL,
+  1,
+  60)
 
 set_callback(save_options, ON.SAVE)
 set_callback(load_options, ON.LOAD)

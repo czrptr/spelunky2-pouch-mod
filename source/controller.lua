@@ -59,15 +59,50 @@ local function on_player_selectable(self)
     self.user_data.pouch:rotate()
   end
 
+  if l_trigger.down then
+    self.user_data.quick_action_timer = self.user_data.quick_action_timer - 1
+  else
+    self.user_data.quick_action_timer = options.quick_action_interval
+  end
+
   local input_captured = false
-  if l_trigger.down and self.user_data.is_retrieving then
+  if l_trigger.pressed then
+    -- PRESSED: Start the action
+
+    if self.holding_uid ~= -1 then
+      -- Player is holding an item
+      self.user_data.wants_to_store = true
+      self.user_data.waiting_for_release = true -- Wait for release to decide
+    elseif self.user_data.pouch:can_retrieve() then
+      -- Player wants to retrieve
+      self.user_data.wants_to_store = false
+      self.user_data.waiting_for_release = true -- Wait for release to decide
+    end
+  elseif l_trigger.down and self.user_data.waiting_for_release then
+    -- HELD DOWN: Check if we should switch to menu mode
+
+    -- If timer has expired, switch to menu mode
+    if self.user_data.quick_action_timer <= 0 then
+      self.user_data.waiting_for_release = false
+      self.user_data.is_retrieving = true
+      self.user_data.selected_slot = 1
+      input_captured = true
+    end
+  elseif l_trigger.down and self.user_data.is_retrieving then
+    -- HELD DOWN: Menu navigation
+
     if was_just_pressed(current_input, previous_input, INPUT_FLAG.RIGHT) then
       self.user_data.selected_slot = self.user_data.selected_slot + 1
     elseif was_just_pressed(current_input, previous_input, INPUT_FLAG.LEFT) then
       self.user_data.selected_slot = self.user_data.selected_slot - 1
     elseif was_just_pressed(current_input, previous_input, INPUT_FLAG.DOWN) then
+      -- Cancel
       self.user_data.is_retrieving = false
+      self.user_data.wants_to_store = false
+      self.user_data.waiting_for_release = false
     end
+
+    -- Wrap selection
     if self.user_data.selected_slot > #self.user_data.pouch.slots then
       self.user_data.selected_slot = 1
     elseif self.user_data.selected_slot < 1 then
@@ -75,18 +110,39 @@ local function on_player_selectable(self)
     end
 
     input_captured = true
-  elseif not l_trigger.down and self.user_data.is_retrieving then
-    self.user_data.pouch:retrieve(self.uid, self.user_data.selected_slot)
-    self.user_data.is_retrieving = false
-    input_captured = true
-  elseif l_trigger.pressed then
-    if self.holding_uid ~= -1 then
-      self.user_data.pouch:store(self.uid, self.holding_uid)
-    elseif self.user_data.pouch:can_retrieve() then
-      self.user_data.is_retrieving = true
-      self.user_data.selected_slot = 1
+  elseif not l_trigger.down then
+    -- RELEASED: Complete the action
+
+    -- Quick action (released before timer expired)
+    if self.user_data.waiting_for_release then
+      if self.user_data.wants_to_store then
+        -- Quick store
+        self.user_data.pouch:store(self.uid, self.holding_uid)
+      else
+        -- Quick retrieve
+        self.user_data.pouch:retrieve(self.uid)
+      end
+
+      -- Reset states
+      self.user_data.waiting_for_release = false
+      self.user_data.wants_to_store = false
+      input_captured = false
+    elseif self.user_data.is_retrieving then
+      -- Menu action completed
+      if self.user_data.wants_to_store then
+        -- Store in selected slot
+        self.user_data.pouch:store(self.uid, self.holding_uid, self.user_data.selected_slot)
+      else
+        -- Retrieve from selected slot
+        self.user_data.pouch:retrieve(self.uid, self.user_data.selected_slot)
+      end
+
+      -- Reset states
+      self.user_data.is_retrieving = false
+      self.user_data.wants_to_store = false
+      self.user_data.waiting_for_release = false
+      input_captured = true
     end
-    input_captured = false
   end
 
   self.user_data.previous_input = current_input
