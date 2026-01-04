@@ -171,7 +171,7 @@ for idx = 1, 4 do
     string.format("player%i_retrieval_option", idx),
     string.format("Player %i item retrieval", idx),
     "Last inserted\0Selectable\0\0",
-    RETRIEVAL_OPTION.LAST_INSERTED)
+    RETRIEVAL_OPTION.SELECTABLE)
 end
 
 register_option_int(
