@@ -68,6 +68,7 @@ The "Pouch" mod introduces a portable item-storage system, allowing players to t
 ### Planned
 - **Online multiplayer support** (compatibility untested; let me know if it works)
 - Scalable pouch capacity via in-game items rather than a fixed maximum
+- Make hermit crab corpses storable
 - Modded item support (requires changes to the [Custom Entities Library](https://spelunky.fyi/mods/m/custom-entities-library/))
 
 ### Not Planned
@@ -75,6 +76,11 @@ The "Pouch" mod introduces a portable item-storage system, allowing players to t
 - Storing live monsters, NPCs, or other players
 
 ## Changelog
+
+### 2.5
+- **Fixed**
+  - Retrieving a hermit crab would sometimes spawn an entity on the hermit crabs back which would sometimes instantly explode or crush the player.
+    Hermit crabs can no longer be stored until a better fix is found.
 
 ### 2.4
 - **Added**
