@@ -181,7 +181,8 @@ local function is_storable(uid)
     return true
   end
   if test_flag(entity.flags, ENT_FLAG.DEAD) and options.monsters_are_storable then
-    return true
+    -- hermit crabs can spawn with block on their back that will crush the player
+    return entity.type.id ~= ENT_TYPE.MONS_HERMITCRAB
   end
   if STORABLE_PETS[type] and options.pets_are_storable then
     return true
