@@ -50,7 +50,9 @@ end
 ---@param self Player
 ---@return boolean
 local function on_player_kill(self)
-  self.user_data.pouch:spill(self.uid)
+  if not self:has_powerup(ENT_TYPE.ITEM_POWERUP_ANKH) then
+    self.user_data.pouch:spill(self.uid)
+  end
   return false
 end
 
