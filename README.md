@@ -77,6 +77,10 @@ The "Pouch" mod introduces a portable item-storage system, allowing players to t
 
 ## Changelog
 
+### 2.6
+- **Fixed**
+  - Players no longer drop items before reviving with the ankh.
+
 ### 2.5
 - **Fixed**
   - Retrieving a hermit crab would sometimes spawn an entity on the hermit crabs back which would sometimes instantly explode or crush the player.

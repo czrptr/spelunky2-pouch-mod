@@ -7,7 +7,7 @@ TODO:
 
 meta = {
   name = "Pouch",
-  version = "2.5",
+  version = "2.6",
   description = "Store held items and retrieve them later",
   author = "Quasar",
 }
